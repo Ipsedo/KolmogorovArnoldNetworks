@@ -14,7 +14,7 @@ def b_spline(x: th.Tensor, k: int) -> th.Tensor:
 
     offset = k // 2 - k % 2
 
-    def __nodes(_i: th.Tensor) -> th.Tensor:
+    def __knots(_i: th.Tensor) -> th.Tensor:
         return (_i + offset) / (n + offset * 2)
 
     i_s = th.arange(n, device=x.device).unsqueeze(0)
@@ -22,15 +22,15 @@ def b_spline(x: th.Tensor, k: int) -> th.Tensor:
     def __b_spline(curr_i_s: th.Tensor, curr_k: int) -> th.Tensor:
         if curr_k == 0:
             return th.logical_and(
-                th.ge(x, __nodes(curr_i_s)), th.lt(x, __nodes(curr_i_s + 1))
+                th.ge(x, __knots(curr_i_s)), th.lt(x, __knots(curr_i_s + 1))
             ).to(th.float)
 
-        return __b_spline(curr_i_s, curr_k - 1) * (x - __nodes(curr_i_s)) / (
-            __nodes(curr_i_s + curr_k) - __nodes(curr_i_s)
+        return __b_spline(curr_i_s, curr_k - 1) * (x - __knots(curr_i_s)) / (
+            __knots(curr_i_s + curr_k) - __knots(curr_i_s)
         ) + __b_spline(curr_i_s + 1, curr_k - 1) * (
-            __nodes(curr_i_s + curr_k + 1) - x
+            __knots(curr_i_s + curr_k + 1) - x
         ) / (
-            __nodes(curr_i_s + curr_k + 1) - __nodes(curr_i_s + 1)
+            __knots(curr_i_s + curr_k + 1) - __knots(curr_i_s + 1)
         )
 
     return __b_spline(i_s, k)

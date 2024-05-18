@@ -95,7 +95,7 @@ def train(kan_options: SplineKanOptions, train_options: TrainOptions) -> None:
 
                 test_losses.append(F.cross_entropy(o, y, reduction="none"))
 
-            test_tqdm_bar.write(
-                f"Test loss epoch {e} : loss_mean = "
-                f"{th.mean(th.cat(test_losses, dim=0)):.4f}"
-            )
+                test_tqdm_bar.set_description(
+                    f"Test loss epoch {e} : loss_mean = "
+                    f"{th.mean(th.cat(test_losses, dim=0)):.4f}"
+                )
