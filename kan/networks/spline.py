@@ -12,7 +12,7 @@ from .abstract_kan import AbstractKAN, AbstractKanLayers
 def b_spline(x: th.Tensor, k: int) -> th.Tensor:
     _, n = x.size()[:2]
 
-    offset = k // 2 - k % 2
+    offset = k // 2
 
     def __knots(_i: th.Tensor) -> th.Tensor:
         return (_i + offset) / (n + offset * 2)
