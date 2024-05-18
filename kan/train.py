@@ -14,6 +14,7 @@ from .networks import SplineKanLayers
 class SplineKanOptions(NamedTuple):
     layers: List[Tuple[int, int]]
     degree: int
+    grid_size: int
 
 
 class TrainOptions(NamedTuple):
@@ -25,7 +26,9 @@ class TrainOptions(NamedTuple):
 
 
 def train(kan_options: SplineKanOptions, train_options: TrainOptions) -> None:
-    kan = SplineKanLayers(kan_options.layers, kan_options.degree)
+    kan = SplineKanLayers(
+        kan_options.layers, kan_options.degree, kan_options.grid_size
+    )
     optim = th.optim.Adam(kan.parameters(), lr=train_options.learning_rate)
 
     train_dataloader = DataLoader(
