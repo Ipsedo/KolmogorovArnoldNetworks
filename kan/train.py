@@ -5,9 +5,10 @@ import torch as th
 from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from torchvision.datasets import MNIST
-from torchvision.transforms import ToTensor
+from torchvision.transforms import Compose, ToTensor
 from tqdm import tqdm
 
+from .data import MinMaxNorm, ToDType
 from .networks import SplineKanLayers
 
 
@@ -26,17 +27,27 @@ class TrainOptions(NamedTuple):
 
 
 def train(kan_options: SplineKanOptions, train_options: TrainOptions) -> None:
+    # pylint: disable=too-many-locals
+
     kan = SplineKanLayers(
         kan_options.layers, kan_options.degree, kan_options.grid_size
     )
     optim = th.optim.Adam(kan.parameters(), lr=train_options.learning_rate)
+
+    data_transform = Compose(
+        [
+            ToTensor(),
+            ToDType(th.float),
+            MinMaxNorm(0.0, 255.0),
+        ]
+    )
 
     train_dataloader = DataLoader(
         MNIST(
             train_options.dataset_path,
             train=True,
             download=True,
-            transform=ToTensor(),
+            transform=data_transform,
         ),
         train_options.batch_size,
         shuffle=True,
@@ -48,7 +59,7 @@ def train(kan_options: SplineKanOptions, train_options: TrainOptions) -> None:
             train_options.dataset_path,
             train=False,
             download=True,
-            transform=ToTensor(),
+            transform=data_transform,
         ),
         train_options.batch_size,
         shuffle=True,
