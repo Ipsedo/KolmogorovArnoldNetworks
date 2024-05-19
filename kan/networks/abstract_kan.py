@@ -13,7 +13,9 @@ class AbstractKAN(ABC, nn.Module):
     def __init__(self, input_space: int, output_space: int) -> None:
         super().__init__()
 
-        self.__w = nn.Parameter(th.randn(1, output_space, input_space))
+        self.__input_space = input_space
+
+        self.__w = nn.Parameter(th.randn(input_space, output_space))
 
         xavier_normal_(self.__w)
 
@@ -26,14 +28,14 @@ class AbstractKAN(ABC, nn.Module):
         pass
 
     def forward(self, x: th.Tensor) -> th.Tensor:
-        assert len(x.size()) == 2
+        assert x.size(-1) == self.__input_space
 
-        x = x.unsqueeze(1)  # broadcast output dim
+        x = x.unsqueeze(-1)  # broadcast output dim
 
         res_act_x = self._residual_activation_function(x)
         learned_act_x = self._activation_function(x)
 
-        return th.sum(self.__w * (res_act_x + learned_act_x), dim=2)
+        return th.sum(self.__w * (res_act_x + learned_act_x), dim=-2)
 
 
 class AbstractKanLayers(ABC, nn.Sequential):

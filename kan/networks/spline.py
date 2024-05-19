@@ -12,13 +12,12 @@ from .abstract_kan import AbstractKAN, AbstractKanLayers
 def b_spline(
     x: th.Tensor, k: int, n: int, x_min: float = 0.0, x_max: float = 1.0
 ) -> th.Tensor:
-    assert len(x.size()) == 3
     x = x.unsqueeze(-1)
 
     def __knots(_i: th.Tensor) -> th.Tensor:
         return _i / n * (x_max - x_min) + x_min
 
-    i_s = th.arange(-k, n, device=x.device)[None, None, None, :]
+    i_s = th.arange(-k, n, device=x.device)
 
     def __b_spline(curr_i_s: th.Tensor, curr_k: int) -> th.Tensor:
         if curr_k == 0:
@@ -46,7 +45,7 @@ class SplineKAN(AbstractKAN):
         self.__k = degree
         self.__n = n
         self.__c = Parameter(
-            1e-1 * th.randn(1, output_space, input_space, self.__n + self.__k)
+            1e-1 * th.randn(input_space, output_space, self.__n + self.__k)
         )
 
     def _activation_function(self, x: Tensor) -> Tensor:

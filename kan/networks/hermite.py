@@ -9,19 +9,20 @@ from .abstract_kan import AbstractKAN, AbstractKanLayers
 
 
 def hermite(x: th.Tensor, n: int) -> th.Tensor:  # sans H_0
+    raise NotImplementedError("broken hermite")
 
-    h = th.ones(*x.size(), n + 1, device=x.device)
-
-    h[:, :, :, 1] = x
-    for i in range(1, n):
-        h[:, :, :, i + 1] = x * h[:, :, :, i] - i * h[:, :, :, i - 1]
-
-    h = h[:, :, :, 1:] / th.exp(
-        th.lgamma(th.arange(2, n + 2, device=x.device)[None, None, None, :])
-        / 2
-    )
-
-    return h
+    # h = th.ones(x.size(-1), n + 1, device=x.device)
+    #
+    # h[:, :, :, 1] = x
+    # for i in range(1, n):
+    #     h[:, :, :, i + 1] = x * h[:, :, :, i] - i * h[:, :, :, i - 1]
+    #
+    # h = h[:, :, :, 1:] / th.exp(
+    #     th.lgamma(th.arange(2, n + 2, device=x.device)[None, None, None, :])
+    #     / 2
+    # )
+    #
+    # return h
 
 
 class HermiteKAN(AbstractKAN):
@@ -30,7 +31,7 @@ class HermiteKAN(AbstractKAN):
         super().__init__(input_space, output_space)
 
         self.__n = n
-        self.__c = nn.Parameter(th.randn(1, output_space, input_space, n))
+        self.__c = nn.Parameter(th.randn(input_space, output_space, n))
 
     def _activation_function(self, x: th.Tensor) -> th.Tensor:
         return th.sum(self.__c * hermite(x, self.__n), dim=-1)
