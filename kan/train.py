@@ -4,6 +4,10 @@ from typing import List, NamedTuple, Tuple
 import torch as th
 from torch.nn import functional as F
 from torch.utils.data import DataLoader
+from torchmetrics.classification.precision_recall import (
+    MulticlassPrecision,
+    MulticlassRecall,
+)
 from torchvision.datasets import MNIST
 from torchvision.transforms import Compose, ToTensor
 from tqdm import tqdm
@@ -77,6 +81,9 @@ def train(kan_options: SplineKanOptions, train_options: TrainOptions) -> None:
 
     for e in range(train_options.nb_epoch):
 
+        train_precision = MulticlassPrecision(num_classes=10).to(device)
+        train_recall = MulticlassRecall(num_classes=10).to(device)
+
         train_tqdm_bar = tqdm(train_dataloader)
 
         kan.train()
@@ -87,6 +94,8 @@ def train(kan_options: SplineKanOptions, train_options: TrainOptions) -> None:
 
             o = kan(x)
 
+            _ = train_precision(o, y), train_recall(o, y)
+
             loss = F.cross_entropy(o, y)
 
             optim.zero_grad()
@@ -96,6 +105,8 @@ def train(kan_options: SplineKanOptions, train_options: TrainOptions) -> None:
             train_tqdm_bar.set_description(
                 f"Epoch {e} / {train_options.nb_epoch}, "
                 f"loss = {loss.item():.4f}, "
+                f"prec = {train_precision.compute().item():.4f}, "
+                f"rec = {train_recall.compute().item():.4f}, "
                 f"grad_norm = {kan.grad_norm():.4f}"
             )
 
@@ -104,16 +115,22 @@ def train(kan_options: SplineKanOptions, train_options: TrainOptions) -> None:
             kan.eval()
 
             test_losses = []
+            test_precision = MulticlassPrecision(num_classes=10).to(device)
+            test_recall = MulticlassRecall(num_classes=10).to(device)
+
             test_tqdm_bar = tqdm(test_dataloader)
             for x, y in test_tqdm_bar:
                 x = x.to(device)
                 y = y.to(device)
 
                 o = kan(x)
+                _ = test_precision(o, y), test_recall(o, y)
 
                 test_losses.append(F.cross_entropy(o, y, reduction="none"))
 
                 test_tqdm_bar.set_description(
                     f"Test loss epoch {e} : loss_mean = "
-                    f"{th.mean(th.cat(test_losses, dim=0)):.4f}"
+                    f"{th.mean(th.cat(test_losses, dim=0)):.4f}, "
+                    f"prec = {test_precision.compute().item():.4f}, "
+                    f"rec = {test_recall.compute().item():.4f}"
                 )

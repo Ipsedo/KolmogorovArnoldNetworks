@@ -5,7 +5,6 @@ import torch as th
 from torch import Tensor
 from torch.nn import Parameter
 from torch.nn import functional as F
-from torch.nn.init import xavier_normal_
 
 from .abstract_kan import AbstractKAN, AbstractKanLayers
 
@@ -47,10 +46,8 @@ class SplineKAN(AbstractKAN):
         self.__k = degree
         self.__n = n
         self.__c = Parameter(
-            th.randn(1, output_space, input_space, self.__n + self.__k)
+            1e-1 * th.randn(1, output_space, input_space, self.__n + self.__k)
         )
-
-        xavier_normal_(self.__c, gain=1e-8)
 
     def _activation_function(self, x: Tensor) -> Tensor:
         return th.sum(self.__c * b_spline(x, self.__k, self.__n), dim=-1)

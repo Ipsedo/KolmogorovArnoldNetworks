@@ -11,11 +11,11 @@ def main() -> None:
 
     train(
         SplineKanOptions(
-            [(28 * 28, 16), (16, 10)],
+            [(28 * 28, 32), (32, 10)],
             3,
-            64,
+            100,
         ),
-        TrainOptions("./out/mnist", 128, 1e-4, 50, True),
+        TrainOptions("./out/mnist", 128, 1e-4, 100, True),
     )
 
 

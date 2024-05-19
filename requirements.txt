@@ -1,8 +1,10 @@
 torch
 torchvision
+torchmetrics
 numpy
 pandas
 tqdm
+jupyter
 
 pre-commit
 mypy
