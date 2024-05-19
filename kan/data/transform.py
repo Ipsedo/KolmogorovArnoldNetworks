@@ -26,3 +26,12 @@ class ToDType:
 
     def __call__(self, x: th.Tensor) -> th.Tensor:
         return x.to(self.__dtype)
+
+
+class Flatten:
+    def __init__(self, start_dim: int, end_dim: int) -> None:
+        self.__start_dim = start_dim
+        self.__end_dim = end_dim
+
+    def __call__(self, x: th.Tensor) -> th.Tensor:
+        return x.flatten(self.__start_dim, self.__end_dim)

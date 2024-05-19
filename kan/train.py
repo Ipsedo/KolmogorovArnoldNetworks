@@ -8,7 +8,7 @@ from torchvision.datasets import MNIST
 from torchvision.transforms import Compose, ToTensor
 from tqdm import tqdm
 
-from .data import MinMaxNorm, ToDType
+from .data import Flatten, MinMaxNorm, ToDType
 from .networks import SplineKanLayers
 
 
@@ -34,11 +34,14 @@ def train(kan_options: SplineKanOptions, train_options: TrainOptions) -> None:
     )
     optim = th.optim.Adam(kan.parameters(), lr=train_options.learning_rate)
 
+    print("parameters :", kan.count_parameters())
+
     data_transform = Compose(
         [
             ToTensor(),
             ToDType(th.float),
             MinMaxNorm(0.0, 255.0),
+            Flatten(0, -1),
         ]
     )
 
@@ -79,7 +82,7 @@ def train(kan_options: SplineKanOptions, train_options: TrainOptions) -> None:
         kan.train()
 
         for x, y in train_tqdm_bar:
-            x = x.to(device).flatten(1, -1)
+            x = x.to(device)
             y = y.to(device)
 
             o = kan(x)
@@ -92,7 +95,8 @@ def train(kan_options: SplineKanOptions, train_options: TrainOptions) -> None:
 
             train_tqdm_bar.set_description(
                 f"Epoch {e} / {train_options.nb_epoch}, "
-                f"loss = {loss.item():.4f}"
+                f"loss = {loss.item():.4f}, "
+                f"grad_norm = {kan.grad_norm():.4f}"
             )
 
         # Test
@@ -102,7 +106,7 @@ def train(kan_options: SplineKanOptions, train_options: TrainOptions) -> None:
             test_losses = []
             test_tqdm_bar = tqdm(test_dataloader)
             for x, y in test_tqdm_bar:
-                x = x.to(device).flatten(1, -1)
+                x = x.to(device)
                 y = y.to(device)
 
                 o = kan(x)
