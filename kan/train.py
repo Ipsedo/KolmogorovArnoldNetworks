@@ -112,13 +112,15 @@ def train(kan_options: SplineKanOptions, train_options: TrainOptions) -> None:
 
         # Test
         with th.no_grad():
-            kan.eval()
 
             test_losses = []
             test_precision = MulticlassPrecision(num_classes=10).to(device)
             test_recall = MulticlassRecall(num_classes=10).to(device)
 
             test_tqdm_bar = tqdm(test_dataloader)
+
+            kan.eval()
+
             for x, y in test_tqdm_bar:
                 x = x.to(device)
                 y = y.to(device)

@@ -11,7 +11,7 @@ def main() -> None:
 
     train(
         SplineKanOptions(
-            [(28 * 28, 32), (32, 10)],
+            [(28 * 28, 20), (20, 10)],
             3,
             100,
         ),
