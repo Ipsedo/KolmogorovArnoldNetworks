@@ -25,4 +25,6 @@ disable = [
     "missing-class-docstring",
     "missing-function-docstring",
     "too-few-public-methods",
+    "too-many-arguments",
+    "duplicate-code",
 ]

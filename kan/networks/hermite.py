@@ -8,21 +8,15 @@ from torch.nn import functional as F
 from .abstract_kan import AbstractKAN, AbstractKanLayers
 
 
-def hermite(x: th.Tensor, n: int) -> th.Tensor:  # sans H_0
-    raise NotImplementedError("broken hermite")
+def hermite(x: th.Tensor, n: int) -> th.Tensor:
+    h_s = [th.ones(*x.size(), device=x.device), x]
 
-    # h = th.ones(x.size(-1), n + 1, device=x.device)
-    #
-    # h[:, :, :, 1] = x
-    # for i in range(1, n):
-    #     h[:, :, :, i + 1] = x * h[:, :, :, i] - i * h[:, :, :, i - 1]
-    #
-    # h = h[:, :, :, 1:] / th.exp(
-    #     th.lgamma(th.arange(2, n + 2, device=x.device)[None, None, None, :])
-    #     / 2
-    # )
-    #
-    # return h
+    for i in range(1, n):
+        h_s.append(x * h_s[i] - i * h_s[i - 1])
+
+    return th.slice_copy(th.stack(h_s, dim=-1), -1, 1) / th.exp(
+        th.lgamma(th.arange(2, n + 2, device=x.device)) / 2
+    )
 
 
 class HermiteKAN(AbstractKAN):
@@ -31,10 +25,13 @@ class HermiteKAN(AbstractKAN):
         super().__init__(input_space, output_space)
 
         self.__n = n
-        self.__c = nn.Parameter(th.randn(input_space, output_space, n))
+        self.__c = nn.Parameter(1e-1 * th.randn(input_space, output_space, n))
 
     def _activation_function(self, x: th.Tensor) -> th.Tensor:
-        return th.sum(self.__c * hermite(x, self.__n), dim=-1)
+        return th.sum(
+            self.__c * hermite(x, self.__n),
+            dim=-1,
+        )
 
     def _residual_activation_function(self, x: th.Tensor) -> th.Tensor:
         return F.mish(x)
