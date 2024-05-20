@@ -5,7 +5,7 @@ from typing import List, Tuple
 import torch as th
 from torch import nn
 from torch.nn import functional as F
-from torch.nn.init import normal_, xavier_normal_
+from torch.nn.init import normal_
 
 from .utils import BaseModule
 
@@ -16,9 +16,9 @@ class Conv2dKan(ABC, nn.Module):
         in_channels: int,
         out_channels: int,
         n: int,
-        kernel_size: int = 3,
-        stride: int = 1,
-        padding: int = 0,
+        kernel_size: int,
+        stride: int,
+        padding: int,
     ) -> None:
         super().__init__()
 
@@ -29,8 +29,8 @@ class Conv2dKan(ABC, nn.Module):
             th.ones(in_channels, out_channels, kernel_size * kernel_size, 1, n)
         )
 
-        xavier_normal_(self.__w)
-        normal_(self.__c, 0, 1e-1)
+        normal_(self.__w)
+        normal_(self.__c, 0, 1e-3)
 
         self.__in_channels = in_channels
         self.__kernel_size = kernel_size
@@ -58,13 +58,17 @@ class Conv2dKan(ABC, nn.Module):
             w - self.__kernel_size + 2 * self.__padding
         ) // self.__stride + 1
 
-        windowed_x = F.unfold(
-            x,
-            self.__kernel_size,
-            1,
-            self.__padding,
-            self.__stride,
-        ).view(b, c, 1, self.__kernel_size**2, -1)
+        windowed_x = (
+            F.unfold(
+                x,
+                self.__kernel_size,
+                1,
+                self.__padding,
+                self.__stride,
+            )
+            .view(b, c, self.__kernel_size**2, -1)
+            .unsqueeze(2)
+        )
 
         return th.sum(
             th.sum(
@@ -83,9 +87,9 @@ class Conv2dKanLayers(ABC, nn.Sequential, BaseModule):
     def __init__(
         self,
         channels: List[Tuple[int, int]],
-        kernel_size: int = 3,
-        stride: int = 1,
-        padding: int = 0,
+        kernel_size: int,
+        stride: int,
+        padding: int,
     ) -> None:
         super().__init__(
             *[

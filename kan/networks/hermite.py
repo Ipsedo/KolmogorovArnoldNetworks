@@ -2,6 +2,7 @@
 from typing import List, Tuple
 
 import torch as th
+from torch import nn
 from torch.nn import functional as F
 
 from .conv import Conv2dKan, Conv2dKanLayers
@@ -24,12 +25,17 @@ class HermiteKAN(LinearKAN):
     def __init__(self, input_space: int, output_space: int, n: int) -> None:
         super().__init__(input_space, output_space, n)
         self.__n = n
+        self.__bn = nn.BatchNorm1d(input_space, affine=False)
 
     def _act(self, x: th.Tensor) -> th.Tensor:
         return hermite(x, self.__n)
 
     def _residual_act(self, x: th.Tensor) -> th.Tensor:
         return F.mish(x)
+
+    def forward(self, x: th.Tensor) -> th.Tensor:
+        out: th.Tensor = super().forward(self.__bn(x))
+        return out
 
 
 class HermiteKanLayers(LinearKanLayers):
@@ -57,11 +63,17 @@ class HermiteConv2dKan(Conv2dKan):
             input_space, output_space, self.__n, kernel_size, stride, padding
         )
 
+        self.__bn = nn.BatchNorm2d(input_space, affine=False)
+
     def _act(self, x: th.Tensor) -> th.Tensor:
         return hermite(x, self.__n)
 
     def _residual_act(self, x: th.Tensor) -> th.Tensor:
         return F.mish(x)
+
+    def forward(self, x: th.Tensor) -> th.Tensor:
+        out: th.Tensor = super().forward(self.__bn(x))
+        return out
 
 
 class HermiteConv2dKanLayers(Conv2dKanLayers):
