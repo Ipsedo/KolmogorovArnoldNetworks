@@ -2,10 +2,10 @@
 from typing import List, Tuple
 
 import torch as th
-from torch import nn
 from torch.nn import functional as F
 
-from .abstract_kan import AbstractKAN, AbstractKanLayers
+from .conv import Conv2dKan, Conv2dKanLayers
+from .linear import LinearKAN, LinearKanLayers
 
 
 def hermite(x: th.Tensor, n: int) -> th.Tensor:
@@ -19,28 +19,71 @@ def hermite(x: th.Tensor, n: int) -> th.Tensor:
     )
 
 
-class HermiteKAN(AbstractKAN):
+class HermiteKAN(LinearKAN):
 
     def __init__(self, input_space: int, output_space: int, n: int) -> None:
-        super().__init__(input_space, output_space)
-
+        super().__init__(input_space, output_space, n)
         self.__n = n
-        self.__c = nn.Parameter(1e-1 * th.randn(input_space, output_space, n))
 
-    def _activation_function(self, x: th.Tensor) -> th.Tensor:
-        return th.sum(
-            self.__c * hermite(x, self.__n),
-            dim=-1,
-        )
+    def _act(self, x: th.Tensor) -> th.Tensor:
+        return hermite(x, self.__n)
 
-    def _residual_activation_function(self, x: th.Tensor) -> th.Tensor:
+    def _residual_act(self, x: th.Tensor) -> th.Tensor:
         return F.mish(x)
 
 
-class HermiteKanLayers(AbstractKanLayers):
+class HermiteKanLayers(LinearKanLayers):
     def __init__(self, layers: List[Tuple[int, int]], n: int) -> None:
         self.__n = n
         super().__init__(layers)
 
-    def _get_layer(self, input_space: int, output_space: int) -> AbstractKAN:
+    def _get_layer(self, input_space: int, output_space: int) -> LinearKAN:
         return HermiteKAN(input_space, output_space, self.__n)
+
+
+# Conv
+class HermiteConv2dKan(Conv2dKan):
+    def __init__(
+        self,
+        input_space: int,
+        output_space: int,
+        n: int,
+        kernel_size: int,
+        stride: int,
+        padding: int,
+    ) -> None:
+        self.__n = n
+        super().__init__(
+            input_space, output_space, self.__n, kernel_size, stride, padding
+        )
+
+    def _act(self, x: th.Tensor) -> th.Tensor:
+        return hermite(x, self.__n)
+
+    def _residual_act(self, x: th.Tensor) -> th.Tensor:
+        return F.mish(x)
+
+
+class HermiteConv2dKanLayers(Conv2dKanLayers):
+    def __init__(
+        self,
+        layers: List[Tuple[int, int]],
+        n: int,
+        kernel_size: int,
+        stride: int,
+        padding: int,
+    ) -> None:
+        self.__n = n
+        super().__init__(layers, kernel_size, stride, padding)
+
+    def _get_conv_kan(
+        self,
+        in_channels: int,
+        out_channels: int,
+        kernel_size: int,
+        stride: int,
+        padding: int,
+    ) -> Conv2dKan:
+        return HermiteConv2dKan(
+            in_channels, out_channels, self.__n, kernel_size, stride, padding
+        )

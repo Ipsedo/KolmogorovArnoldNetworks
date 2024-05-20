@@ -4,7 +4,7 @@ from typing import List, Tuple
 import pytest
 import torch as th
 
-from kan.networks.conv import HermiteConv2dKan, HermiteConv2dKanLayers
+from kan.networks.hermite import HermiteConv2dKan, HermiteConv2dKanLayers
 
 
 @pytest.mark.parametrize("batch_size", [1, 2, 3])

@@ -3,10 +3,9 @@ from typing import List, Tuple
 
 import torch as th
 from torch import Tensor
-from torch.nn import Parameter
 from torch.nn import functional as F
 
-from .abstract_kan import AbstractKAN, AbstractKanLayers
+from .linear import LinearKAN, LinearKanLayers
 
 
 def b_spline(
@@ -36,26 +35,23 @@ def b_spline(
     return __b_spline(i_s, k)
 
 
-class SplineKAN(AbstractKAN):
+class SplineKAN(LinearKAN):
     def __init__(
         self, input_space: int, output_space: int, degree: int, n: int
     ) -> None:
-        super().__init__(input_space, output_space)
-
         self.__k = degree
         self.__n = n
-        self.__c = Parameter(
-            1e-1 * th.randn(input_space, output_space, self.__n + self.__k)
-        )
 
-    def _activation_function(self, x: Tensor) -> Tensor:
-        return th.sum(self.__c * b_spline(x, self.__k, self.__n), dim=-1)
+        super().__init__(input_space, output_space, self.__n + self.__k)
 
-    def _residual_activation_function(self, x: Tensor) -> Tensor:
+    def _act(self, x: Tensor) -> Tensor:
+        return b_spline(x, self.__k, self.__n)
+
+    def _residual_act(self, x: Tensor) -> Tensor:
         return F.mish(x)
 
 
-class SplineKanLayers(AbstractKanLayers):
+class SplineKanLayers(LinearKanLayers):
     def __init__(
         self, layers: List[Tuple[int, int]], degree: int, grid_size: int
     ) -> None:
@@ -63,7 +59,7 @@ class SplineKanLayers(AbstractKanLayers):
         self.__grid_size = grid_size
         super().__init__(layers)
 
-    def _get_layer(self, input_space: int, output_space: int) -> AbstractKAN:
+    def _get_layer(self, input_space: int, output_space: int) -> LinearKAN:
         return SplineKAN(
             input_space, output_space, self.__degree, self.__grid_size
         )
