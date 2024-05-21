@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
-from .hermite import HermiteConv2dKanLayers, HermiteKanLayers
+from .conv import Conv2dKan, Conv2dKanLayers
+from .hermite import Hermite
+from .linear import LinearKAN, LinearKanLayers
 from .mlp import MLP
-from .spline import SplineKanLayers
+from .spline import BSpline
+from .utils import ActivationFunction, BaseModule

@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
-from typing import List, Tuple
 
 import torch as th
-from torch import Tensor
-from torch.nn import functional as F
 
-from .linear import LinearKAN, LinearKanLayers
+from .utils import ActivationFunction
 
 
 def b_spline(
@@ -35,31 +32,15 @@ def b_spline(
     return __b_spline(i_s, k)
 
 
-class SplineKAN(LinearKAN):
-    def __init__(
-        self, input_space: int, output_space: int, degree: int, n: int
-    ) -> None:
-        self.__k = degree
-        self.__n = n
+class BSpline(ActivationFunction):
+    def __init__(self, degree: int, grid_size: int) -> None:
+        super().__init__()
 
-        super().__init__(input_space, output_space, self.__n + self.__k)
-
-    def _act(self, x: Tensor) -> Tensor:
-        return b_spline(x, self.__k, self.__n)
-
-    def _residual_act(self, x: Tensor) -> Tensor:
-        return F.mish(x)
-
-
-class SplineKanLayers(LinearKanLayers):
-    def __init__(
-        self, layers: List[Tuple[int, int]], degree: int, grid_size: int
-    ) -> None:
         self.__degree = degree
         self.__grid_size = grid_size
-        super().__init__(layers)
 
-    def _get_layer(self, input_space: int, output_space: int) -> LinearKAN:
-        return SplineKAN(
-            input_space, output_space, self.__degree, self.__grid_size
-        )
+    def forward(self, x: th.Tensor) -> th.Tensor:
+        return b_spline(x, self.__degree, self.__grid_size)
+
+    def get_size(self) -> int:
+        return self.__grid_size + self.__degree

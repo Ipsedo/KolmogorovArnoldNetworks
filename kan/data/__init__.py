@@ -1,2 +1,2 @@
 # -*- coding: utf-8 -*-
-from .transform import Flatten, MinMaxNorm, ToDType
+from .datasets import TensorCIFAR10, TensorCIFAR100, TensorMNIST

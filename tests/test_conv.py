@@ -4,7 +4,7 @@ from typing import List, Tuple
 import pytest
 import torch as th
 
-from kan.networks.hermite import HermiteConv2dKan, HermiteConv2dKanLayers
+from kan.networks import Conv2dKan, Conv2dKanLayers, Hermite
 
 
 @pytest.mark.parametrize("batch_size", [1, 2, 3])
@@ -23,13 +23,14 @@ def test_hermite_conv2d_kan(
     stride: int,
     n_hermite: int,
 ) -> None:
-    hermite_conv_kan = HermiteConv2dKan(
+    hermite_conv_kan = Conv2dKan(
         in_channels,
         out_channels,
-        n_hermite,
         kernel_size,
         stride,
         kernel_size // 2,
+        Hermite(n_hermite),
+        lambda t: t,
     )
     hermite_conv_kan.eval()
 
@@ -53,7 +54,14 @@ def test_hermite_conv2d_kan(
 def test_hermite_conv_kan_layers(
     channels: List[Tuple[int, int]], batch_size: int, n_hermite: int
 ) -> None:
-    conv_kan_layers = HermiteConv2dKanLayers(channels, n_hermite, 3, 2, 1)
+    conv_kan_layers = Conv2dKanLayers(
+        channels,
+        [3] * len(channels),
+        [2] * len(channels),
+        [1] * len(channels),
+        Hermite(n_hermite),
+        lambda t: t,
+    )
     conv_kan_layers.eval()
 
     input_space = channels[0][0]

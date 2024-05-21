@@ -1,2 +1,10 @@
 # -*- coding: utf-8 -*-
-from .train import SplineKanOptions, TrainOptions, train
+from .options import (
+    ConvOptions,
+    HermiteOptions,
+    LinearOptions,
+    ModelOptions,
+    SplineOptions,
+    TrainOptions,
+)
+from .train import train

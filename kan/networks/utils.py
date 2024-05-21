@@ -1,9 +1,20 @@
 # -*- coding: utf-8 -*-
+from abc import ABC, abstractmethod
 from statistics import mean
 
 import numpy as np
 import torch as th
 from torch import nn
+
+
+class ActivationFunction(ABC, nn.Module):
+    @abstractmethod
+    def get_size(self) -> int:
+        pass
+
+    @abstractmethod
+    def forward(self, x: th.Tensor) -> th.Tensor:
+        pass
 
 
 class BaseModule(nn.Module):

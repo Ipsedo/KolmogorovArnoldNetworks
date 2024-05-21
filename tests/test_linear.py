@@ -4,24 +4,7 @@ from typing import List, Tuple
 import pytest
 import torch as th
 
-from kan.networks.spline import SplineKAN, SplineKanLayers, b_spline
-
-
-@pytest.mark.parametrize("batch_size", [1, 2, 3])
-@pytest.mark.parametrize("features", [5, 6, 7])
-@pytest.mark.parametrize("degree", [1, 2, 3])
-@pytest.mark.parametrize("grid_size", [12, 13, 14])
-def test_b_spline(
-    batch_size: int, features: int, degree: int, grid_size: int
-) -> None:
-    x = th.randn(batch_size, 1, features)
-    o = b_spline(x, degree, grid_size)
-
-    assert len(o.size()) == 4
-    assert o.size(0) == batch_size
-    assert o.size(1) == 1
-    assert o.size(2) == features
-    assert o.size(3) == degree + grid_size
+from kan.networks import BSpline, LinearKAN, LinearKanLayers
 
 
 @pytest.mark.parametrize("batch_size", [1, 2, 3])
@@ -32,7 +15,9 @@ def test_b_spline(
 def test_spline_kan(
     batch_size: int, features: int, out: int, degree: int, grid_size: int
 ) -> None:
-    spline_kan = SplineKAN(features, out, degree, grid_size)
+    spline_kan = LinearKAN(
+        features, out, BSpline(degree, grid_size), lambda t: t
+    )
     x = th.randn(batch_size, features)
 
     o = spline_kan(x)
@@ -51,7 +36,9 @@ def test_spline_kan(
 def test_spline_kan_layers(
     layers: List[Tuple[int, int]], batch_size: int, degree: int, grid_size: int
 ) -> None:
-    kan_layers = SplineKanLayers(layers, degree, grid_size)
+    kan_layers = LinearKanLayers(
+        layers, BSpline(degree, grid_size), lambda t: t
+    )
 
     input_space = layers[0][0]
     output_space = layers[-1][1]

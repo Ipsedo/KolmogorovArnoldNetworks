@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import argparse
 
-from .train import HermiteConv2dKanOptions, TrainOptions, train
+from .options import ConvOptions, HermiteOptions, ModelOptions, TrainOptions
+from .train import train
 
 
 def main() -> None:
@@ -10,21 +11,15 @@ def main() -> None:
     _ = parser.parse_args()
 
     train(
-        # SplineKanOptions(
-        #     [(28 * 28, 32), (32, 10)],
-        #     2,
-        #     100,
-        # ),
-        # HermiteKanOptions(
-        #     [(28 * 28, 32), (32, 10)],
-        #     5,
-        # ),
-        HermiteConv2dKanOptions(
-            [(3, 8), (8, 16), (16, 32), (32, 64), (64, 100)],
-            5,
-            3,
-            2,
-            1,
+        ModelOptions(
+            ConvOptions(
+                channels=[(3, 8), (8, 16), (16, 32), (32, 64), (64, 100)],
+                kernel_sizes=[3, 3, 3, 3, 3],
+                strides=[2, 2, 2, 2, 2],
+                paddings=[1, 1, 1, 1, 1],
+                residual_activation="mish",
+            ),
+            HermiteOptions(5),
         ),
         TrainOptions("./out/cifar100", 128, 1e-4, 1000, True),
     )
