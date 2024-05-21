@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from abc import ABC
 from typing import Callable, List, Tuple
 
 import torch as th
@@ -49,7 +48,7 @@ class LinearKAN(nn.Module):
         )
 
 
-class LinearKanLayers(ABC, nn.Sequential, BaseModule):
+class LinearKanLayers(nn.Sequential, BaseModule):
     def __init__(
         self,
         layers: List[Tuple[int, int]],

@@ -17,11 +17,7 @@ class ActivationFunction(ABC, nn.Module):
         pass
 
 
-class BaseModule(nn.Module):
-
-    def forward(self, x: th.Tensor) -> th.Tensor:
-        return x
-
+class BaseModule(ABC, nn.Module):
     def count_parameters(self) -> int:
         return sum(int(np.prod(p.size())) for p in self.parameters())
 
