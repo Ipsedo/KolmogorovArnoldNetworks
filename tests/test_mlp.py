@@ -12,6 +12,7 @@ from kan.networks.mlp import MLP
 )
 @pytest.mark.parametrize("batch_size", [1, 2, 3])
 def test_mlp(layers: List[Tuple[int, int]], batch_size: int) -> None:
+    # pylint: disable=duplicate-code
     kan_layers = MLP(layers)
 
     input_space = layers[0][0]
