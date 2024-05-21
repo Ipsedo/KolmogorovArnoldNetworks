@@ -13,11 +13,11 @@ def main() -> None:
     train(
         ModelOptions(
             ConvOptions(
-                channels=[(3, 32), (32, 64), (64, 100)],
-                kernel_sizes=[5, 5, 3],
-                strides=[4, 4, 2],
-                paddings=[2, 2, 1],
-                residual_activation="mish",
+                channels=[(3, 8), (8, 16), (16, 32), (32, 64), (64, 100)],
+                kernel_sizes=[3, 3, 3, 3, 3],
+                strides=[2, 2, 2, 2, 2],
+                paddings=[1, 1, 1, 1, 1],
+                residual_activation="silu",
             ),
             HermiteOptions(5),
         ),
