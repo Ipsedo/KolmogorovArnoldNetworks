@@ -22,9 +22,9 @@ Train on Cifar10
 ```bash
 $ cd /path/to/KolmogorovArnoldNetworks
 $ # with hermite
-$ python -m kan "[(3,8),(8,16),(16,32),(32,64)]" "[(256,512),(512,10)]" -k 3 -s 2 -p 1 -r "silu" -a "hermite n=5" train "cifar10" "./out/cifar100" -lr 1e-4 -b 64 -e 100 --cuda
+$ python -m kan "[(3,8),(8,16),(16,32),(32,64)]" "[(256,512),(512,10)]" -k 3 -s 2 -p 1 -r "silu" -a "hermite n=5" train "cifar10" "./out/cifar10" -lr 1e-4 -b 64 -e 100 --cuda
 $ # with spline
-$ python -m kan "[(3,8),(8,16),(16,32),(32,64)]" "[(256,512),(512,10)]" -k 3 -s 2 -p 1 -r "silu" -a "b-spline degree=2 grid_size=8" train "cifar10" "./out/cifar100" -lr 1e-4 -b 64 -e 100 --cuda
+$ python -m kan "[(3,8),(8,16),(16,32),(32,64)]" "[(256,512),(512,10)]" -k 3 -s 2 -p 1 -r "silu" -a "b-spline degree=2 grid_size=8" train "cifar10" "./out/cifar10" -lr 1e-4 -b 64 -e 100 --cuda
 ```
 
 ## Features

@@ -2,12 +2,9 @@
 import torch as th
 from torch.nn import functional as F
 from torch.utils.data import DataLoader, random_split
-from torchmetrics.classification.precision_recall import (
-    MulticlassPrecision,
-    MulticlassRecall,
-)
 from tqdm import tqdm
 
+from .metrics import PrecisionRecall
 from .options import ModelOptions, TrainOptions
 
 
@@ -51,12 +48,7 @@ def train(kan_options: ModelOptions, train_options: TrainOptions) -> None:
 
     for e in range(train_options.nb_epoch):
 
-        train_precision = MulticlassPrecision(
-            num_classes=dataset.get_class_nb()
-        ).to(device)
-        train_recall = MulticlassRecall(num_classes=dataset.get_class_nb()).to(
-            device
-        )
+        train_metric = PrecisionRecall(dataset.get_class_nb(), 128)
 
         train_tqdm_bar = tqdm(train_dataloader)
 
@@ -68,7 +60,7 @@ def train(kan_options: ModelOptions, train_options: TrainOptions) -> None:
 
             o = model(x)
 
-            _ = train_precision(o, y), train_recall(o, y)
+            train_metric.add(o, y)
 
             loss = F.cross_entropy(o, y)
 
@@ -76,11 +68,13 @@ def train(kan_options: ModelOptions, train_options: TrainOptions) -> None:
             loss.backward()
             optim.step()
 
+            prec, rec = train_metric.get()
+
             train_tqdm_bar.set_description(
                 f"Epoch {e} / {train_options.nb_epoch}, "
                 f"loss = {loss.item():.4f}, "
-                f"prec = {train_precision.compute().item():.4f}, "
-                f"rec = {train_recall.compute().item():.4f}, "
+                f"prec = {prec:.4f}, "
+                f"rec = {rec:.4f}, "
                 f"grad_norm = {model.grad_norm():.4f}"
             )
 
@@ -88,12 +82,7 @@ def train(kan_options: ModelOptions, train_options: TrainOptions) -> None:
         with th.no_grad():
 
             test_losses = []
-            test_precision = MulticlassPrecision(
-                num_classes=dataset.get_class_nb()
-            ).to(device)
-            test_recall = MulticlassRecall(
-                num_classes=dataset.get_class_nb()
-            ).to(device)
+            test_metric = PrecisionRecall(dataset.get_class_nb(), None)
 
             test_tqdm_bar = tqdm(test_dataloader)
 
@@ -104,13 +93,15 @@ def train(kan_options: ModelOptions, train_options: TrainOptions) -> None:
                 y = y.to(device)
 
                 o = model(x)
-                _ = test_precision(o, y), test_recall(o, y)
+                test_metric.add(o, y)
 
                 test_losses.append(F.cross_entropy(o, y, reduction="none"))
+
+                prec, rec = test_metric.get()
 
                 test_tqdm_bar.set_description(
                     f"Test loss epoch {e} : loss_mean = "
                     f"{th.mean(th.cat(test_losses, dim=0)):.4f}, "
-                    f"prec = {test_precision.compute().item():.4f}, "
-                    f"rec = {test_recall.compute().item():.4f}"
+                    f"prec = {prec:.4f}, "
+                    f"rec = {rec:.4f}"
                 )
