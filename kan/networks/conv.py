@@ -97,7 +97,7 @@ class Conv2dKanLayers(nn.Sequential, BaseModule):
     ) -> None:
         conv_layers = [
             nn.Sequential(
-                nn.InstanceNorm2d(c_i, affine=False),
+                nn.BatchNorm2d(c_i, affine=False),
                 Conv2dKan(c_i, c_o, k, s, p, act_fun, res_act_fun),
             )
             for (c_i, c_o), k, s, p in zip(

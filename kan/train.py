@@ -46,9 +46,9 @@ def train(kan_options: ModelOptions, train_options: TrainOptions) -> None:
     else:
         device = th.device("cpu")
 
-    for e in range(train_options.nb_epoch):
+    train_metric = PrecisionRecall(dataset.get_class_nb(), 128)
 
-        train_metric = PrecisionRecall(dataset.get_class_nb(), 128)
+    for e in range(train_options.nb_epoch):
 
         train_tqdm_bar = tqdm(train_dataloader)
 
@@ -59,15 +59,13 @@ def train(kan_options: ModelOptions, train_options: TrainOptions) -> None:
             y = y.to(device)
 
             o = model(x)
-
-            train_metric.add(o, y)
-
             loss = F.cross_entropy(o, y)
 
             optim.zero_grad()
             loss.backward()
             optim.step()
 
+            train_metric.add(F.softmax(o, -1), y)
             prec, rec = train_metric.get()
 
             train_tqdm_bar.set_description(
@@ -93,10 +91,12 @@ def train(kan_options: ModelOptions, train_options: TrainOptions) -> None:
                 y = y.to(device)
 
                 o = model(x)
+
+                test_losses.append(
+                    F.cross_entropy(F.softmax(o, -1), y, reduction="none")
+                )
+
                 test_metric.add(o, y)
-
-                test_losses.append(F.cross_entropy(o, y, reduction="none"))
-
                 prec, rec = test_metric.get()
 
                 test_tqdm_bar.set_description(
