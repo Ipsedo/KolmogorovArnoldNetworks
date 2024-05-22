@@ -9,7 +9,7 @@ from torchmetrics.classification.precision_recall import (
 )
 from tqdm import tqdm
 
-from .data import TensorCIFAR100
+from .data import TensorCIFAR10
 from .options import ModelOptions, TrainOptions
 
 
@@ -23,7 +23,7 @@ def train(kan_options: ModelOptions, train_options: TrainOptions) -> None:
     print("parameters :", model.count_parameters())
 
     train_dataloader = DataLoader(  # type: ignore
-        TensorCIFAR100(
+        TensorCIFAR10(
             train_options.dataset_path,
             train=True,
             download=True,
@@ -34,7 +34,7 @@ def train(kan_options: ModelOptions, train_options: TrainOptions) -> None:
     )
 
     test_dataloader = DataLoader(  # type: ignore
-        TensorCIFAR100(
+        TensorCIFAR10(
             train_options.dataset_path,
             train=False,
             download=True,
@@ -52,8 +52,8 @@ def train(kan_options: ModelOptions, train_options: TrainOptions) -> None:
 
     for e in range(train_options.nb_epoch):
 
-        train_precision = MulticlassPrecision(num_classes=100).to(device)
-        train_recall = MulticlassRecall(num_classes=100).to(device)
+        train_precision = MulticlassPrecision(num_classes=10).to(device)
+        train_recall = MulticlassRecall(num_classes=10).to(device)
 
         train_tqdm_bar = tqdm(train_dataloader)
 
@@ -85,8 +85,8 @@ def train(kan_options: ModelOptions, train_options: TrainOptions) -> None:
         with th.no_grad():
 
             test_losses = []
-            test_precision = MulticlassPrecision(num_classes=100).to(device)
-            test_recall = MulticlassRecall(num_classes=100).to(device)
+            test_precision = MulticlassPrecision(num_classes=10).to(device)
+            test_recall = MulticlassRecall(num_classes=10).to(device)
 
             test_tqdm_bar = tqdm(test_dataloader)
 

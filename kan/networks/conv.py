@@ -48,18 +48,19 @@ class Conv2dKan(nn.Module):
         self.__stride = stride
         self.__padding = padding
 
+    def __get_output_size(self, size: int) -> int:
+        return (
+            size - self.__kernel_size + 2 * self.__padding
+        ) // self.__stride + 1
+
     def forward(self, x: th.Tensor) -> th.Tensor:
         assert len(x.size()) == 4
         assert x.size(1) == self.__in_channels
 
         b, c, h, w = x.size()
 
-        output_height = (
-            h - self.__kernel_size + 2 * self.__padding
-        ) // self.__stride + 1
-        output_width = (
-            w - self.__kernel_size + 2 * self.__padding
-        ) // self.__stride + 1
+        output_height = self.__get_output_size(h)
+        output_width = self.__get_output_size(w)
 
         windowed_x = F.unfold(
             x,

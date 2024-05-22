@@ -15,7 +15,7 @@ from .networks import (
 
 # Models
 
-ResidualActivation = Literal["relu", "lrelu", "gelu", "silu", "mish"]
+ResidualActivation = Literal["relu", "lrelu", "gelu", "silu", "mish", "none"]
 
 
 class LinearOptions(NamedTuple):
@@ -51,6 +51,7 @@ _ACTIVATION_FUNCTIONS: Final[Dict[str, Callable[[th.Tensor], th.Tensor]]] = {
     "gelu": F.gelu,
     "silu": F.silu,
     "mish": F.mish,
+    "none": th.zeros_like,
 }
 
 

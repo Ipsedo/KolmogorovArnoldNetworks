@@ -29,7 +29,7 @@ class LinearKAN(nn.Module):
         )
 
         xavier_normal_(self.__w)
-        normal_(self.__c)
+        normal_(self.__c, 0, 1e-1)
 
     def forward(self, x: th.Tensor) -> th.Tensor:
         assert len(x.size()) == 2

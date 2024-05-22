@@ -15,7 +15,7 @@ def test_hermite(sizes: Tuple[int, ...], n_hermite: int) -> None:
     h = hermite(x, n_hermite)
 
     assert len(h.size()) == len(sizes) + 1
-    assert all(h.size(i) == sizes[i] for i in range(len(sizes)))
+    assert all(h.size(i) == s for i, s in enumerate(sizes))
     assert h.size(-1) == n_hermite
 
 

@@ -13,7 +13,7 @@ def main() -> None:
     train(
         ModelOptions(
             ConvOptions(
-                channels=[(3, 8), (8, 16), (16, 32), (32, 64), (64, 100)],
+                channels=[(3, 8), (8, 16), (16, 32), (32, 64), (64, 10)],
                 kernel_sizes=[3, 3, 3, 3, 3],
                 strides=[2, 2, 2, 2, 2],
                 paddings=[1, 1, 1, 1, 1],
@@ -21,7 +21,7 @@ def main() -> None:
             ),
             HermiteOptions(5),
         ),
-        TrainOptions("./out/cifar100", 128, 1e-4, 1000, True),
+        TrainOptions("./out/cifar100", 64, 1e-4, 1000, True),
     )
 
 
