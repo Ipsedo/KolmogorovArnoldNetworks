@@ -107,7 +107,7 @@ class Conv2dKanLayers(nn.Sequential, BaseModule):
 
         flatten_layer = [nn.Flatten(1, -1)]
 
-        clf__layers = [
+        clf_layers = [
             nn.Sequential(
                 nn.BatchNorm1d(i, affine=False),
                 LinearKAN(i, o, act_fun, res_act_fun),
@@ -115,4 +115,4 @@ class Conv2dKanLayers(nn.Sequential, BaseModule):
             for i, o in linear_sizes
         ]
 
-        super().__init__(*conv_layers + flatten_layer + clf__layers)
+        super().__init__(*conv_layers + flatten_layer + clf_layers)

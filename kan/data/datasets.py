@@ -116,7 +116,6 @@ class TensorImageNet(ImageFolder, ClassificationDataset):
                     ToDType(th.float),
                     Resize(256),
                     CenterCrop(224),
-                    MinMaxNorm(0.0, 255.0),
                 ]
             ),
             target_transform=None,
