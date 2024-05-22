@@ -1,14 +1,5 @@
 # -*- coding: utf-8 -*-
-from typing import (
-    Callable,
-    Dict,
-    Final,
-    List,
-    Literal,
-    NamedTuple,
-    Tuple,
-    get_args,
-)
+from typing import Callable, Dict, Final, List, Literal, NamedTuple, Set, Tuple
 
 import torch as th
 from torch.nn import functional as F
@@ -29,8 +20,6 @@ from .networks import (
 )
 
 # Models
-
-_Activation = Literal["hermite", "b-spline"]
 ResidualActivation = Literal["relu", "lrelu", "gelu", "silu", "mish", "none"]
 
 
@@ -49,8 +38,8 @@ class ConvOptions(NamedTuple):
 
 
 # Factory
-
-_ACTIVATION_FUNCTIONS: Final[Dict[str, Callable[[th.Tensor], th.Tensor]]] = {
+_ACTIVATIONS: Final[Set[str]] = {"hermite", "b-spline"}
+_RESIDUAL_ACTIVATIONS: Final[Dict[str, Callable[[th.Tensor], th.Tensor]]] = {
     "relu": F.relu,
     "lrelu": F.leaky_relu,
     "gelu": F.gelu,
@@ -64,14 +53,17 @@ class ModelOptions(NamedTuple):
     model_options: ConvOptions
     activation_compound_options: Tuple[str, Dict[str, str]]
 
-    @staticmethod
-    def __to_list(l_i: List[int] | int, length: int) -> List[int]:
-        return l_i if isinstance(l_i, list) else [l_i] * length
+    def __to_list(self, l_i: List[int] | int) -> List[int]:
+        return (
+            l_i
+            if isinstance(l_i, list)
+            else [l_i] * len(self.model_options.channels)
+        )
 
     def get_model(self) -> BaseModule:
         act_fun_name, act_fun_options = self.activation_compound_options
 
-        assert act_fun_name in get_args(_Activation)
+        assert act_fun_name in _ACTIVATIONS
 
         act_fun: ActivationFunction
 
@@ -87,21 +79,12 @@ class ModelOptions(NamedTuple):
 
         return Conv2dKanLayers(
             self.model_options.channels,
-            self.__to_list(
-                self.model_options.kernel_sizes,
-                len(self.model_options.channels),
-            ),
-            self.__to_list(
-                self.model_options.strides,
-                len(self.model_options.channels),
-            ),
-            self.__to_list(
-                self.model_options.paddings,
-                len(self.model_options.channels),
-            ),
+            self.__to_list(self.model_options.kernel_sizes),
+            self.__to_list(self.model_options.strides),
+            self.__to_list(self.model_options.paddings),
             self.model_options.linear_sizes,
             act_fun,
-            _ACTIVATION_FUNCTIONS[self.model_options.residual_activation],
+            _RESIDUAL_ACTIVATIONS[self.model_options.residual_activation],
         )
 
 
