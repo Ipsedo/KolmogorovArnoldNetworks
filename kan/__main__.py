@@ -6,10 +6,8 @@ from typing import List, Tuple, get_args
 
 from .options import (
     ActivationsOptions,
-    ArchitectureOptions,
     ConvOptions,
     HermiteOptions,
-    LinearOptions,
     ModelOptions,
     ResidualActivation,
     SplineOptions,
@@ -60,28 +58,10 @@ def main() -> None:
     # Model #
     #########
 
-    arch_parser = parser.add_subparsers(dest="architecture", required=True)
-
-    # Linear
-    linear_parser = arch_parser.add_parser("linear")
-    linear_parser.add_argument("layers", type=_parse_list_of_tuple)
-    linear_parser.add_argument(
-        "-r",
-        "--residual-activation",
-        type=str,
-        choices=get_args(ResidualActivation),
-        required=True,
-    )
-
     # Convolution
-    conv_parser = arch_parser.add_parser("conv")
-    conv_parser.add_argument(
-        "channels", type=_parse_list_of_tuple, required=True
-    )
-    conv_parser.add_argument(
-        "linear-layers", type=_parse_list_of_tuple, required=True
-    )
-    conv_parser.add_argument(
+    parser.add_argument("channels", type=_parse_list_of_tuple)
+    parser.add_argument("linear_layers", type=_parse_list_of_tuple)
+    parser.add_argument(
         "-r",
         "--residual-activation",
         type=str,
@@ -89,13 +69,13 @@ def main() -> None:
         required=True,
     )
 
-    conv_parser.add_argument(
+    parser.add_argument(
         "-k", "--kernel-size", type=_parse_int_or_list_of_int, required=True
     )
-    conv_parser.add_argument(
+    parser.add_argument(
         "-s", "--stride", type=_parse_int_or_list_of_int, required=True
     )
-    conv_parser.add_argument(
+    parser.add_argument(
         "-p", "--padding", type=_parse_int_or_list_of_int, required=True
     )
 
@@ -103,16 +83,11 @@ def main() -> None:
     # Activation #
     ##############
 
-    act_parser = parser.add_subparsers(dest="activation", required=True)
-
-    # spline
-    spline_parser = act_parser.add_parser("spline")
-    spline_parser.add_argument("-d", "--degree", type=int, default=2)
-    spline_parser.add_argument("-g", "--grid-size", type=int, default=8)
-
-    # hermite
-    hermite_parser = act_parser.add_parser("hermite")
-    hermite_parser.add_argument("-n", "--n-hermite")
+    act_group = parser.add_mutually_exclusive_group(required=True)
+    act_group.add_argument("--hermite", type=int)
+    act_group.add_argument(
+        "--b-spline", nargs=2, type=int, help="degree grid_size"
+    )
 
     ########
     # Mode #
@@ -137,33 +112,28 @@ def main() -> None:
     ################
 
     act_options: ActivationsOptions
-    if args.activation == "spline":
-        act_options = SplineOptions(args.degree, args.grid_size)
-    elif args.activation == "hermite":
-        act_options = HermiteOptions(args.n_hermite)
+    if args.b_spline is not None:
+        act_options = SplineOptions(
+            degree=args.b_spline[0], grid_size=args.b_spline[1]
+        )
+    elif args.hermite is not None:
+        act_options = HermiteOptions(args.hermite)
     else:
         parser.error(f"Unknown activation {args.activation}")
         sys.exit(1)
 
-    arch_options: ArchitectureOptions
-    if args.architecture == "linear":
-        arch_options = LinearOptions(args.layers, args.residual_activation)
-    elif args.architecture == "conv":
-        arch_options = ConvOptions(
-            args.channels,
-            args.kernel_size,
-            args.stride,
-            args.padding,
-            args.linear_layers,
-            args.residual_activation,
-        )
-    else:
-        parser.error(f"Unknown architecture {args.architecture}")
-        sys.exit(1)
+    conv_options = ConvOptions(
+        args.channels,
+        args.kernel_size,
+        args.stride,
+        args.padding,
+        args.linear_layers,
+        args.residual_activation,
+    )
 
     if args.mode == "train":
         train(
-            ModelOptions(arch_options, act_options),
+            ModelOptions(conv_options, act_options),
             TrainOptions(
                 args.dataset_path,
                 args.batch_size,

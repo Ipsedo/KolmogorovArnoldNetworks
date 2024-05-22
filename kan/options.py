@@ -10,7 +10,6 @@ from .networks import (
     BSpline,
     Conv2dKanLayers,
     Hermite,
-    LinearKanLayers,
 )
 
 # Models
@@ -56,11 +55,10 @@ _ACTIVATION_FUNCTIONS: Final[Dict[str, Callable[[th.Tensor], th.Tensor]]] = {
 }
 
 ActivationsOptions = HermiteOptions | SplineOptions
-ArchitectureOptions = LinearOptions | ConvOptions
 
 
 class ModelOptions(NamedTuple):
-    model_options: ArchitectureOptions
+    model_options: ConvOptions
     activation_options: ActivationsOptions
 
     @staticmethod
@@ -81,32 +79,24 @@ class ModelOptions(NamedTuple):
                 f"Unknown activation options: {self.activation_options}"
             )
 
-        if isinstance(self.model_options, LinearOptions):
-            return LinearKanLayers(
-                self.model_options.layers,
-                act_fun,
-                _ACTIVATION_FUNCTIONS[self.model_options.residual_activation],
-            )
-        if isinstance(self.model_options, ConvOptions):
-            return Conv2dKanLayers(
-                self.model_options.channels,
-                self.__to_list(
-                    self.model_options.kernel_sizes,
-                    len(self.model_options.channels),
-                ),
-                self.__to_list(
-                    self.model_options.strides,
-                    len(self.model_options.channels),
-                ),
-                self.__to_list(
-                    self.model_options.paddings,
-                    len(self.model_options.channels),
-                ),
-                self.model_options.linear_sizes,
-                act_fun,
-                _ACTIVATION_FUNCTIONS[self.model_options.residual_activation],
-            )
-        raise ValueError(f"Unknown model options: {self.model_options}")
+        return Conv2dKanLayers(
+            self.model_options.channels,
+            self.__to_list(
+                self.model_options.kernel_sizes,
+                len(self.model_options.channels),
+            ),
+            self.__to_list(
+                self.model_options.strides,
+                len(self.model_options.channels),
+            ),
+            self.__to_list(
+                self.model_options.paddings,
+                len(self.model_options.channels),
+            ),
+            self.model_options.linear_sizes,
+            act_fun,
+            _ACTIVATION_FUNCTIONS[self.model_options.residual_activation],
+        )
 
 
 # Training / Eval stuff
