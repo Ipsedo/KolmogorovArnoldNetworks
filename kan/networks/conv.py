@@ -6,6 +6,7 @@ from torch import nn
 from torch.nn import functional as F
 from torch.nn.init import normal_, xavier_normal_
 
+from .linear import LinearKAN
 from .utils import ActivationFunction, BaseModule
 
 
@@ -90,15 +91,28 @@ class Conv2dKanLayers(nn.Sequential, BaseModule):
         kernel_sizes: List[int],
         strides: List[int],
         paddings: List[int],
+        linear_sizes: List[Tuple[int, int]],
         act_fun: ActivationFunction,
         res_act_fun: Callable[[th.Tensor], th.Tensor],
     ) -> None:
-        super().__init__(
-            *[
-                Conv2dKan(c_i, c_o, k, s, p, act_fun, res_act_fun)
-                for (c_i, c_o), k, s, p in zip(
-                    channels, kernel_sizes, strides, paddings
-                )
-            ]
-            + [nn.Flatten(1, -1)]
-        )
+        conv_layers = [
+            nn.Sequential(
+                nn.InstanceNorm2d(c_i, affine=False),
+                Conv2dKan(c_i, c_o, k, s, p, act_fun, res_act_fun),
+            )
+            for (c_i, c_o), k, s, p in zip(
+                channels, kernel_sizes, strides, paddings
+            )
+        ]
+
+        flatten_layer = [nn.Flatten(1, -1)]
+
+        clf__layers = [
+            nn.Sequential(
+                nn.BatchNorm1d(i, affine=False),
+                LinearKAN(i, o, act_fun, res_act_fun),
+            )
+            for i, o in linear_sizes
+        ]
+
+        super().__init__(*conv_layers + flatten_layer + clf__layers)

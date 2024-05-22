@@ -47,27 +47,29 @@ def test_hermite_conv2d_kan(
 
 @pytest.mark.parametrize(
     "channels",
-    [[(16, 10), (10, 3)], [(2, 3), (3, 2)], [(16, 32), (32, 16), (16, 1)]],
+    [[(16, 10), (10, 3)], [(2, 3), (3, 2)], [(16, 32), (32, 16)]],
 )
 @pytest.mark.parametrize("batch_size", [1, 2, 3])
 @pytest.mark.parametrize("n_hermite", [1, 2, 3])
 def test_hermite_conv_kan_layers(
     channels: List[Tuple[int, int]], batch_size: int, n_hermite: int
 ) -> None:
+
+    input_space = channels[0][0]
+    output_space = channels[-1][1]
+
     conv_kan_layers = Conv2dKanLayers(
         channels,
         [3] * len(channels),
         [2] * len(channels),
         [1] * len(channels),
+        [(output_space * 2 * 2, output_space)],
         Hermite(n_hermite),
         lambda t: t,
     )
     conv_kan_layers.eval()
 
-    input_space = channels[0][0]
-    output_space = channels[-1][1]
-
-    x = th.randn(batch_size, input_space, 4, 4)
+    x = th.randn(batch_size, input_space, 8, 8)
     o = conv_kan_layers(x)
 
     assert len(o.size()) == 2

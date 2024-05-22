@@ -4,6 +4,7 @@ torchmetrics
 numpy
 pandas
 tqdm
+scipy
 jupyter
 
 pre-commit

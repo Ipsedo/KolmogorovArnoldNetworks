@@ -25,9 +25,10 @@ class LinearOptions(NamedTuple):
 
 class ConvOptions(NamedTuple):
     channels: List[Tuple[int, int]]
-    kernel_sizes: List[int]
-    strides: List[int]
-    paddings: List[int]
+    kernel_sizes: List[int] | int
+    strides: List[int] | int
+    paddings: List[int] | int
+    linear_sizes: List[Tuple[int, int]]
     residual_activation: ResidualActivation
 
 
@@ -54,10 +55,17 @@ _ACTIVATION_FUNCTIONS: Final[Dict[str, Callable[[th.Tensor], th.Tensor]]] = {
     "none": th.zeros_like,
 }
 
+ActivationsOptions = HermiteOptions | SplineOptions
+ArchitectureOptions = LinearOptions | ConvOptions
+
 
 class ModelOptions(NamedTuple):
-    model_options: LinearOptions | ConvOptions
-    activation_options: HermiteOptions | SplineOptions
+    model_options: ArchitectureOptions
+    activation_options: ActivationsOptions
+
+    @staticmethod
+    def __to_list(l_i: List[int] | int, length: int) -> List[int]:
+        return l_i if isinstance(l_i, list) else [l_i] * length
 
     def get_model(self) -> BaseModule:
         act_fun: ActivationFunction
@@ -82,9 +90,19 @@ class ModelOptions(NamedTuple):
         if isinstance(self.model_options, ConvOptions):
             return Conv2dKanLayers(
                 self.model_options.channels,
-                self.model_options.kernel_sizes,
-                self.model_options.strides,
-                self.model_options.paddings,
+                self.__to_list(
+                    self.model_options.kernel_sizes,
+                    len(self.model_options.channels),
+                ),
+                self.__to_list(
+                    self.model_options.strides,
+                    len(self.model_options.channels),
+                ),
+                self.__to_list(
+                    self.model_options.paddings,
+                    len(self.model_options.channels),
+                ),
+                self.model_options.linear_sizes,
                 act_fun,
                 _ACTIVATION_FUNCTIONS[self.model_options.residual_activation],
             )
