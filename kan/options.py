@@ -1,9 +1,25 @@
 # -*- coding: utf-8 -*-
-from typing import Callable, Dict, Final, List, Literal, NamedTuple, Tuple
+from typing import (
+    Callable,
+    Dict,
+    Final,
+    List,
+    Literal,
+    NamedTuple,
+    Tuple,
+    get_args,
+)
 
 import torch as th
 from torch.nn import functional as F
 
+from .data import (
+    ClassificationDataset,
+    TensorCIFAR10,
+    TensorCIFAR100,
+    TensorImageNet,
+    TensorMNIST,
+)
 from .networks import (
     ActivationFunction,
     BaseModule,
@@ -14,6 +30,7 @@ from .networks import (
 
 # Models
 
+_Activation = Literal["hermite", "b-spline"]
 ResidualActivation = Literal["relu", "lrelu", "gelu", "silu", "mish", "none"]
 
 
@@ -31,18 +48,6 @@ class ConvOptions(NamedTuple):
     residual_activation: ResidualActivation
 
 
-# Activation functions
-
-
-class HermiteOptions(NamedTuple):
-    n_hermite: int
-
-
-class SplineOptions(NamedTuple):
-    degree: int
-    grid_size: int
-
-
 # Factory
 
 _ACTIVATION_FUNCTIONS: Final[Dict[str, Callable[[th.Tensor], th.Tensor]]] = {
@@ -54,30 +59,31 @@ _ACTIVATION_FUNCTIONS: Final[Dict[str, Callable[[th.Tensor], th.Tensor]]] = {
     "none": th.zeros_like,
 }
 
-ActivationsOptions = HermiteOptions | SplineOptions
-
 
 class ModelOptions(NamedTuple):
     model_options: ConvOptions
-    activation_options: ActivationsOptions
+    activation_compound_options: Tuple[str, Dict[str, str]]
 
     @staticmethod
     def __to_list(l_i: List[int] | int, length: int) -> List[int]:
         return l_i if isinstance(l_i, list) else [l_i] * length
 
     def get_model(self) -> BaseModule:
+        act_fun_name, act_fun_options = self.activation_compound_options
+
+        assert act_fun_name in get_args(_Activation)
+
         act_fun: ActivationFunction
-        if isinstance(self.activation_options, HermiteOptions):
-            act_fun = Hermite(self.activation_options.n_hermite)
-        elif isinstance(self.activation_options, SplineOptions):
+
+        if act_fun_name == "hermite":
+            act_fun = Hermite(int(act_fun_options["n"]))
+        elif act_fun_name == "b-spline":
             act_fun = BSpline(
-                self.activation_options.degree,
-                self.activation_options.grid_size,
+                int(act_fun_options["degree"]),
+                int(act_fun_options["grid_size"]),
             )
         else:
-            raise ValueError(
-                f"Unknown activation options: {self.activation_options}"
-            )
+            raise ValueError(f"Unknown activation options: {act_fun_name}")
 
         return Conv2dKanLayers(
             self.model_options.channels,
@@ -101,10 +107,27 @@ class ModelOptions(NamedTuple):
 
 # Training / Eval stuff
 
+DatasetName = Literal["cifar10", "cifar100", "mnist", "image-net"]
+
 
 class TrainOptions(NamedTuple):
     dataset_path: str
+    dataset: DatasetName
+    train_ratio: float
     batch_size: int
     learning_rate: float
     nb_epoch: int
     cuda: bool
+
+    def get_dataset(self) -> ClassificationDataset:
+        if self.dataset == "cifar10":
+            return TensorCIFAR10(self.dataset_path, train=True, download=True)
+        if self.dataset == "cifar100":
+            return TensorCIFAR100(self.dataset_path, train=True, download=True)
+        if self.dataset == "mnist":
+            return TensorMNIST(
+                self.dataset_path, train=True, download=True, flatten=False
+            )
+        if self.dataset == "image-net":
+            return TensorImageNet(self.dataset_path)
+        raise ValueError(f"Unknown dataset {self.dataset}")

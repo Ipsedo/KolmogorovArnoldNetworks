@@ -1,10 +1,3 @@
 # -*- coding: utf-8 -*-
-from .options import (
-    ConvOptions,
-    HermiteOptions,
-    LinearOptions,
-    ModelOptions,
-    SplineOptions,
-    TrainOptions,
-)
+from .options import ConvOptions, LinearOptions, ModelOptions, TrainOptions
 from .train import train

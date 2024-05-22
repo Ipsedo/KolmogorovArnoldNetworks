@@ -2,15 +2,13 @@
 import argparse
 import re
 import sys
-from typing import List, Tuple, get_args
+from typing import Dict, List, Tuple, get_args
 
 from .options import (
-    ActivationsOptions,
     ConvOptions,
-    HermiteOptions,
+    DatasetName,
     ModelOptions,
     ResidualActivation,
-    SplineOptions,
     TrainOptions,
 )
 from .train import train
@@ -51,6 +49,20 @@ def _parse_int_or_list_of_int(string: str) -> List[int] | int:
     return _parse_list_of_int(string)
 
 
+def _parse_activations(arg: str) -> Tuple[str, Dict[str, str]]:
+    args = arg.split(" ")
+    assert len(args) >= 1
+
+    act_name = args[0]
+    options = {}
+
+    for a in args[1:]:
+        key, value = a.split("=", 1)
+        options[key] = value
+
+    return act_name, options
+
+
 def main() -> None:
     parser = argparse.ArgumentParser("kan main")
 
@@ -79,14 +91,12 @@ def main() -> None:
         "-p", "--padding", type=_parse_int_or_list_of_int, required=True
     )
 
-    ##############
-    # Activation #
-    ##############
-
-    act_group = parser.add_mutually_exclusive_group(required=True)
-    act_group.add_argument("--hermite", type=int)
-    act_group.add_argument(
-        "--b-spline", nargs=2, type=int, help="degree grid_size"
+    parser.add_argument(
+        "-a",
+        "--activation",
+        type=str,
+        required=True,
+        help='Usage : "{hermite,b-spline} key_1=value_1 key_2=value_2 ..."',
     )
 
     ########
@@ -97,7 +107,11 @@ def main() -> None:
 
     # train
     train_parser = mode_parser.add_parser("train")
+    train_parser.add_argument(
+        "dataset", type=str, choices=get_args(DatasetName)
+    )
     train_parser.add_argument("dataset_path", type=str)
+    train_parser.add_argument("--train-ratio", type=float, default=0.7)
     train_parser.add_argument("-e", "--epochs", type=int, default=100)
     train_parser.add_argument("-b", "--batch-size", type=int, default=24)
     train_parser.add_argument(
@@ -111,17 +125,6 @@ def main() -> None:
     # Main Program #
     ################
 
-    act_options: ActivationsOptions
-    if args.b_spline is not None:
-        act_options = SplineOptions(
-            degree=args.b_spline[0], grid_size=args.b_spline[1]
-        )
-    elif args.hermite is not None:
-        act_options = HermiteOptions(args.hermite)
-    else:
-        parser.error(f"Unknown activation {args.activation}")
-        sys.exit(1)
-
     conv_options = ConvOptions(
         args.channels,
         args.kernel_size,
@@ -133,9 +136,11 @@ def main() -> None:
 
     if args.mode == "train":
         train(
-            ModelOptions(conv_options, act_options),
+            ModelOptions(conv_options, _parse_activations(args.activation)),
             TrainOptions(
                 args.dataset_path,
+                args.dataset,
+                args.train_ratio,
                 args.batch_size,
                 args.learning_rate,
                 args.epochs,
