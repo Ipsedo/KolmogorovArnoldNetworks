@@ -65,7 +65,7 @@ class Conv2dKan(nn.Module):
         ).view(b, c, 1, self.__kernel_size**2, -1)
 
     def __activation(self, windowed_x: th.Tensor) -> th.Tensor:
-        # sum over hermite polynomials
+        # sum over function approximation
         return self.__res_act_fun(windowed_x) + th.sum(
             self.__c * self.__act_fun(windowed_x), dim=-1
         )
