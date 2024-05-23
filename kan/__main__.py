@@ -2,16 +2,17 @@
 import argparse
 import re
 import sys
-from typing import Dict, List, Tuple, get_args
+from typing import List, Tuple
 
 from .infer import infer
 from .options import (
     ConvOptions,
-    DatasetName,
     InferOptions,
     ModelOptions,
-    ResidualActivation,
     TrainOptions,
+    get_activation_names,
+    get_dataset_names,
+    get_residual_activation_names,
 )
 from .train import train
 
@@ -51,20 +52,19 @@ def _parse_int_or_list_of_int(string: str) -> List[int] | int:
     return _parse_list_of_int(string)
 
 
-def _parse_activations(args: List[str]) -> Tuple[str, Dict[str, str]]:
-    option_args = {a for a in args if "=" in a}
-    non_option_args = {a for a in args if "=" not in a}
+def _parse_activation_option(arg: str) -> Tuple[str, str]:
+    regex_key_value = re.compile(r"^ *([^= ]+) *= *([^= ]+) *$")
 
-    assert len(non_option_args) == 1, "must specify activation name"
+    match = regex_key_value.match(arg)
 
-    act_name = non_option_args.pop()
-    options = {}
-
-    for a in option_args:
-        key, value = a.split("=", 1)
-        options[str(key).strip()] = str(value).strip()
-
-    return act_name, options
+    if match:
+        key = match.group(1)
+        value = match.group(2)
+        return key, value
+    raise argparse.ArgumentTypeError(
+        f"invalid option: {arg}. Expected key-value pair, "
+        "example: key_1=value_1"
+    )
 
 
 def main() -> None:
@@ -81,7 +81,7 @@ def main() -> None:
         "-r",
         "--residual-activation",
         type=str,
-        choices=get_args(ResidualActivation),
+        choices=get_residual_activation_names(),
         required=True,
     )
 
@@ -99,12 +99,17 @@ def main() -> None:
         "-a",
         "--activation",
         type=str,
+        choices=get_activation_names(),
+        required=True,
+    )
+
+    parser.add_argument(
+        "-ao",
+        "--activation-options",
+        type=_parse_activation_option,
         action="append",
         required=True,
-        help='Usage : "'
-        "-a activation_name "
-        "-a key_1=value_1 "
-        '-a key_2=value_2 ..."',
+        help='Usage : "' "-ao key_1=value_1 " '-ao key_2=value_2 ..."',
     )
 
     parser.add_argument("--cuda", action="store_true")
@@ -117,9 +122,7 @@ def main() -> None:
 
     # train
     train_parser = mode_parser.add_parser("train")
-    train_parser.add_argument(
-        "dataset", type=str, choices=get_args(DatasetName)
-    )
+    train_parser.add_argument("dataset", type=str, choices=get_dataset_names())
     train_parser.add_argument("dataset_path", type=str)
     train_parser.add_argument("output_path", type=str)
     train_parser.add_argument("--train-ratio", type=float, default=0.7)
@@ -132,9 +135,7 @@ def main() -> None:
 
     # infer
     infer_parser = mode_parser.add_parser("infer")
-    infer_parser.add_argument(
-        "dataset", type=str, choices=get_args(DatasetName)
-    )
+    infer_parser.add_argument("dataset", type=str, choices=get_dataset_names())
     infer_parser.add_argument("dataset_path", type=str)
     infer_parser.add_argument("model_state_dict_path", type=str)
     infer_parser.add_argument("-o", "--output-csv", type=str, required=True)
@@ -155,7 +156,7 @@ def main() -> None:
             args.linear_layers,
             args.residual_activation,
         ),
-        _parse_activations(args.activation),
+        (args.activation, dict(args.activation_options)),
         args.cuda,
     )
 

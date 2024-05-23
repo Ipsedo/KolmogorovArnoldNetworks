@@ -35,3 +35,12 @@ class Flatten:
 
     def __call__(self, x: th.Tensor) -> th.Tensor:
         return x.flatten(self.__start_dim, self.__end_dim)
+
+
+class ToRGB:
+    def __call__(self, x: th.Tensor) -> th.Tensor:
+        if len(x.size()) == 2:
+            return x.unsqueeze(0).repeat(3, 1, 1)
+        if len(x.size()) == 3 and x.size(0) == 1:
+            return x.repeat(3, 1, 1)
+        return x

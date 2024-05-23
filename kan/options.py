@@ -1,34 +1,26 @@
 # -*- coding: utf-8 -*-
-from typing import (
-    Callable,
-    Dict,
-    Final,
-    List,
-    Literal,
-    NamedTuple,
-    Tuple,
-    Type,
-)
+from typing import Callable, Dict, Final, List, NamedTuple, Tuple, Type
 
 import torch as th
 from torch.nn import functional as F
 
 from .data import (
     ClassificationDataset,
+    TensorCaltech256,
     TensorCIFAR10,
     TensorCIFAR100,
+    TensorEuroSAT,
     TensorImageNet,
     TensorMNIST,
 )
 from .networks import ActivationFunction, BSpline, Conv2dKanLayers, Hermite
 
 # Models
-ResidualActivation = Literal["relu", "lrelu", "gelu", "silu", "mish", "none"]
 
 
 class LinearOptions(NamedTuple):
     layers: List[Tuple[int, int]]
-    residual_activation: ResidualActivation
+    residual_activation: str
 
 
 class ConvOptions(NamedTuple):
@@ -37,7 +29,7 @@ class ConvOptions(NamedTuple):
     strides: List[int] | int
     paddings: List[int] | int
     linear_sizes: List[Tuple[int, int]]
-    residual_activation: ResidualActivation
+    residual_activation: str
 
 
 # Factory
@@ -45,6 +37,7 @@ _ACTIVATIONS: Final[Dict[str, Type[ActivationFunction]]] = {
     "hermite": Hermite,
     "b-spline": BSpline,
 }
+
 _RESIDUAL_ACTIVATIONS: Final[Dict[str, Callable[[th.Tensor], th.Tensor]]] = {
     "relu": F.relu,
     "lrelu": F.leaky_relu,
@@ -53,6 +46,14 @@ _RESIDUAL_ACTIVATIONS: Final[Dict[str, Callable[[th.Tensor], th.Tensor]]] = {
     "mish": F.mish,
     "none": th.zeros_like,
 }
+
+
+def get_activation_names() -> List[str]:
+    return list(_ACTIVATIONS.keys())
+
+
+def get_residual_activation_names() -> List[str]:
+    return list(_RESIDUAL_ACTIVATIONS.keys())
 
 
 class ModelOptions(NamedTuple):
@@ -88,28 +89,32 @@ class ModelOptions(NamedTuple):
 
 # Training / Eval stuff
 
-DatasetName = Literal["cifar10", "cifar100", "mnist", "image-net"]
+_DATASET_CONSTRUCTOR: Final[Dict[str, Type[ClassificationDataset]]] = {
+    "cifar10": TensorCIFAR10,
+    "cifar100": TensorCIFAR100,
+    "mnist": TensorMNIST,
+    "imagenet": TensorImageNet,
+    "eurosat": TensorEuroSAT,
+    "caltech": TensorCaltech256,
+}
 
 
-def _get_dataset(
-    dataset: DatasetName, dataset_path: str
-) -> ClassificationDataset:
-    if dataset == "cifar10":
-        return TensorCIFAR10(dataset_path, train=True, download=True)
-    if dataset == "cifar100":
-        return TensorCIFAR100(dataset_path, train=True, download=True)
-    if dataset == "mnist":
-        return TensorMNIST(
-            dataset_path, train=True, download=True, flatten=False
-        )
-    if dataset == "image-net":
-        return TensorImageNet(dataset_path)
-    raise ValueError(f"Unknown dataset {dataset}")
+def get_dataset_names() -> List[str]:
+    return list(_DATASET_CONSTRUCTOR.keys())
+
+
+def _get_dataset(dataset: str, dataset_path: str) -> ClassificationDataset:
+    assert dataset in _DATASET_CONSTRUCTOR, (
+        f"Unrecognized dataset '{dataset}'. "
+        f"Available datasets : {'|'.join(_DATASET_CONSTRUCTOR.keys())}"
+    )
+
+    return _DATASET_CONSTRUCTOR[dataset](dataset_path)
 
 
 class TrainOptions(NamedTuple):
     dataset_path: str
-    dataset: DatasetName
+    dataset: str
     output_path: str
     train_ratio: float
     batch_size: int
@@ -123,7 +128,7 @@ class TrainOptions(NamedTuple):
 
 class InferOptions(NamedTuple):
     dataset_path: str
-    dataset: DatasetName
+    dataset: str
     batch_size: int
     model_state_dict_path: str
     output_csv_path: str

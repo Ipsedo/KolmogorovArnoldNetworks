@@ -6,6 +6,7 @@ pandas
 tqdm
 scipy
 jupyter
+gdown
 
 pre-commit
 mypy
