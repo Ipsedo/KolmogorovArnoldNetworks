@@ -72,7 +72,7 @@ class ModelOptions(NamedTuple):
 
         assert act_fun_name in _ACTIVATIONS, (
             f'Unrecognized activation function "{act_fun_name}". '
-            f"Available options: {'|'.join(_ACTIVATIONS.keys())}"
+            f"Available activations : {'|'.join(_ACTIVATIONS.keys())}"
         )
 
         return Conv2dKanLayers(
