@@ -7,6 +7,7 @@ from torch.nn import functional as F
 from torch.utils.data import DataLoader, random_split
 from tqdm import tqdm
 
+from .infer import infer_on_dataset
 from .metrics import PrecisionRecall
 from .options import ModelOptions, TrainOptions
 
@@ -40,13 +41,6 @@ def train(kan_options: ModelOptions, train_options: TrainOptions) -> None:
 
     train_dataloader = DataLoader(  # type: ignore
         train_dataset,
-        train_options.batch_size,
-        shuffle=True,
-        num_workers=6,
-    )
-
-    test_dataloader = DataLoader(  # type: ignore
-        eval_dataset,
         train_options.batch_size,
         shuffle=True,
         num_workers=6,
@@ -105,29 +99,10 @@ def train(kan_options: ModelOptions, train_options: TrainOptions) -> None:
             idx += 1
 
         # Test
-        with th.no_grad():
-
-            test_losses = []
-            test_metric = PrecisionRecall(dataset.get_class_nb(), None)
-
-            test_tqdm_bar = tqdm(test_dataloader)
-
-            model.eval()
-
-            for x, y in test_tqdm_bar:
-                x = x.to(device)
-                y = y.to(device)
-
-                o = model(x)
-
-                test_losses.append(F.cross_entropy(o, y, reduction="none"))
-
-                test_metric.add(F.softmax(o, -1), y)
-                prec, rec = test_metric.get()
-
-                test_tqdm_bar.set_description(
-                    f"Eval : loss = "
-                    f"{th.mean(th.cat(test_losses, dim=0)):.4f}, "
-                    f"prec = {prec:.4f}, "
-                    f"rec = {rec:.4f}"
-                )
+        _ = infer_on_dataset(
+            model,
+            eval_dataset,
+            train_options.batch_size,
+            dataset.get_class_nb(),
+            device,
+        )

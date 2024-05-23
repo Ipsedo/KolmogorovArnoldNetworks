@@ -4,9 +4,11 @@ import re
 import sys
 from typing import Dict, List, Tuple, get_args
 
+from .infer import infer
 from .options import (
     ConvOptions,
     DatasetName,
+    InferOptions,
     ModelOptions,
     ResidualActivation,
     TrainOptions,
@@ -121,24 +123,38 @@ def main() -> None:
     train_parser.add_argument("--save-every", type=int, default=4096)
     train_parser.add_argument("--cuda", action="store_true")
 
+    # infer
+    infer_parser = mode_parser.add_parser("infer")
+    infer_parser.add_argument(
+        "dataset", type=str, choices=get_args(DatasetName)
+    )
+    infer_parser.add_argument("dataset_path", type=str)
+    infer_parser.add_argument("model_state_dict_path", type=str)
+    infer_parser.add_argument("-o", "--output-csv", type=str, required=True)
+    infer_parser.add_argument("-b", "--batch-size", type=int, default=24)
+    infer_parser.add_argument("--cuda", action="store_true")
+
     args = parser.parse_args()
 
     ################
     # Main Program #
     ################
 
-    conv_options = ConvOptions(
-        args.channels,
-        args.kernel_size,
-        args.stride,
-        args.padding,
-        args.linear_layers,
-        args.residual_activation,
+    model_options = ModelOptions(
+        ConvOptions(
+            args.channels,
+            args.kernel_size,
+            args.stride,
+            args.padding,
+            args.linear_layers,
+            args.residual_activation,
+        ),
+        _parse_activations(args.activation),
     )
 
     if args.mode == "train":
         train(
-            ModelOptions(conv_options, _parse_activations(args.activation)),
+            model_options,
             TrainOptions(
                 args.dataset_path,
                 args.dataset,
@@ -148,6 +164,18 @@ def main() -> None:
                 args.learning_rate,
                 args.epochs,
                 args.save_every,
+                args.cuda,
+            ),
+        )
+    elif args.mode == "infer":
+        infer(
+            model_options,
+            InferOptions(
+                args.dataset_path,
+                args.dataset,
+                args.batch_size,
+                args.model_state_dict_path,
+                args.output_csv,
                 args.cuda,
             ),
         )

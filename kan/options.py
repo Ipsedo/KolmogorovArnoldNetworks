@@ -11,13 +11,7 @@ from .data import (
     TensorImageNet,
     TensorMNIST,
 )
-from .networks import (
-    ActivationFunction,
-    BaseModule,
-    BSpline,
-    Conv2dKanLayers,
-    Hermite,
-)
+from .networks import ActivationFunction, BSpline, Conv2dKanLayers, Hermite
 
 # Models
 ResidualActivation = Literal["relu", "lrelu", "gelu", "silu", "mish", "none"]
@@ -60,7 +54,7 @@ class ModelOptions(NamedTuple):
             else [l_i] * len(self.model_options.channels)
         )
 
-    def get_model(self) -> BaseModule:
+    def get_model(self) -> Conv2dKanLayers:
         act_fun_name, act_fun_options = self.activation_compound_options
 
         assert act_fun_name in _ACTIVATIONS
@@ -93,6 +87,22 @@ class ModelOptions(NamedTuple):
 DatasetName = Literal["cifar10", "cifar100", "mnist", "image-net"]
 
 
+def _get_dataset(
+    dataset: DatasetName, dataset_path: str
+) -> ClassificationDataset:
+    if dataset == "cifar10":
+        return TensorCIFAR10(dataset_path, train=True, download=True)
+    if dataset == "cifar100":
+        return TensorCIFAR100(dataset_path, train=True, download=True)
+    if dataset == "mnist":
+        return TensorMNIST(
+            dataset_path, train=True, download=True, flatten=False
+        )
+    if dataset == "image-net":
+        return TensorImageNet(dataset_path)
+    raise ValueError(f"Unknown dataset {dataset}")
+
+
 class TrainOptions(NamedTuple):
     dataset_path: str
     dataset: DatasetName
@@ -105,14 +115,16 @@ class TrainOptions(NamedTuple):
     cuda: bool
 
     def get_dataset(self) -> ClassificationDataset:
-        if self.dataset == "cifar10":
-            return TensorCIFAR10(self.dataset_path, train=True, download=True)
-        if self.dataset == "cifar100":
-            return TensorCIFAR100(self.dataset_path, train=True, download=True)
-        if self.dataset == "mnist":
-            return TensorMNIST(
-                self.dataset_path, train=True, download=True, flatten=False
-            )
-        if self.dataset == "image-net":
-            return TensorImageNet(self.dataset_path)
-        raise ValueError(f"Unknown dataset {self.dataset}")
+        return _get_dataset(self.dataset, self.dataset_path)
+
+
+class InferOptions(NamedTuple):
+    dataset_path: str
+    dataset: DatasetName
+    batch_size: int
+    model_state_dict_path: str
+    output_csv_path: str
+    cuda: bool
+
+    def get_dataset(self) -> ClassificationDataset:
+        return _get_dataset(self.dataset, self.dataset_path)
