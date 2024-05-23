@@ -84,12 +84,12 @@ def train(kan_options: ModelOptions, train_options: TrainOptions) -> None:
                 f"loss = {loss.item():.4f}, "
                 f"prec = {prec:.4f}, "
                 f"rec = {rec:.4f}, "
-                f"grad_norm = {model.grad_norm():.4f}"
+                f"grad_norm = {model.grad_norm():.4f}, "
+                f"save : [{idx % train_options.save_every:04d} "
+                f"/ {train_options.save_every}]"
             )
 
-            idx += 1
-
-            if idx % train_options.save_every == train_options.save_every - 1:
+            if idx % train_options.save_every == 0:
                 th.save(
                     model.state_dict(),
                     join(train_options.output_path, f"model_{idx}.pt"),
@@ -99,6 +99,8 @@ def train(kan_options: ModelOptions, train_options: TrainOptions) -> None:
                     optim.state_dict(),
                     join(train_options.output_path, f"optim_{idx}.pt"),
                 )
+
+            idx += 1
 
         # Test
         with th.no_grad():
