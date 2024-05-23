@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+from os import makedirs
+from os.path import exists, isdir, join
+
 import torch as th
 from torch.nn import functional as F
 from torch.utils.data import DataLoader, random_split
@@ -10,6 +13,13 @@ from .options import ModelOptions, TrainOptions
 
 def train(kan_options: ModelOptions, train_options: TrainOptions) -> None:
     # pylint: disable=too-many-locals
+
+    if not exists(train_options.output_path):
+        makedirs(train_options.output_path)
+    elif not isdir(train_options.output_path):
+        raise NotADirectoryError(
+            f"{train_options.output_path} is not a directory"
+        )
 
     if train_options.cuda:
         th.backends.cudnn.benchmark = True
@@ -47,6 +57,7 @@ def train(kan_options: ModelOptions, train_options: TrainOptions) -> None:
         device = th.device("cpu")
 
     train_metric = PrecisionRecall(dataset.get_class_nb(), 128)
+    idx = 0
 
     for e in range(train_options.nb_epoch):
 
@@ -76,6 +87,19 @@ def train(kan_options: ModelOptions, train_options: TrainOptions) -> None:
                 f"grad_norm = {model.grad_norm():.4f}"
             )
 
+            idx += 1
+
+            if idx % train_options.save_every == train_options.save_every - 1:
+                th.save(
+                    model.state_dict(),
+                    join(train_options.output_path, f"model_{idx}.pt"),
+                )
+
+                th.save(
+                    optim.state_dict(),
+                    join(train_options.output_path, f"optim_{idx}.pt"),
+                )
+
         # Test
         with th.no_grad():
 
@@ -92,11 +116,9 @@ def train(kan_options: ModelOptions, train_options: TrainOptions) -> None:
 
                 o = model(x)
 
-                test_losses.append(
-                    F.cross_entropy(F.softmax(o, -1), y, reduction="none")
-                )
+                test_losses.append(F.cross_entropy(o, y, reduction="none"))
 
-                test_metric.add(o, y)
+                test_metric.add(F.softmax(o, -1), y)
                 prec, rec = test_metric.get()
 
                 test_tqdm_bar.set_description(

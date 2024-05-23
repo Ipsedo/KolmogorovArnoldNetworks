@@ -24,6 +24,9 @@ class Metric(ABC, Generic[T]):
     def get(self) -> T:
         return self._process_args(self.__window)
 
+    def reset(self) -> None:
+        self.__window = []
+
     @abstractmethod
     def _process_args(self, window: List[Tuple[th.Tensor, ...]]) -> T:
         pass

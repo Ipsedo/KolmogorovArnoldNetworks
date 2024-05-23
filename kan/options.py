@@ -96,10 +96,12 @@ DatasetName = Literal["cifar10", "cifar100", "mnist", "image-net"]
 class TrainOptions(NamedTuple):
     dataset_path: str
     dataset: DatasetName
+    output_path: str
     train_ratio: float
     batch_size: int
     learning_rate: float
     nb_epoch: int
+    save_every: int
     cuda: bool
 
     def get_dataset(self) -> ClassificationDataset:

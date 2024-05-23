@@ -111,12 +111,14 @@ def main() -> None:
         "dataset", type=str, choices=get_args(DatasetName)
     )
     train_parser.add_argument("dataset_path", type=str)
+    train_parser.add_argument("output_path", type=str)
     train_parser.add_argument("--train-ratio", type=float, default=0.7)
     train_parser.add_argument("-e", "--epochs", type=int, default=100)
     train_parser.add_argument("-b", "--batch-size", type=int, default=24)
     train_parser.add_argument(
         "-lr", "--learning-rate", type=float, default=1e-4
     )
+    train_parser.add_argument("--save-every", type=int, default=4096)
     train_parser.add_argument("--cuda", action="store_true")
 
     args = parser.parse_args()
@@ -140,10 +142,12 @@ def main() -> None:
             TrainOptions(
                 args.dataset_path,
                 args.dataset,
+                args.output_path,
                 args.train_ratio,
                 args.batch_size,
                 args.learning_rate,
                 args.epochs,
+                args.save_every,
                 args.cuda,
             ),
         )
