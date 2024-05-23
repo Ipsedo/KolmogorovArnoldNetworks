@@ -3,10 +3,10 @@ from typing import List, Tuple
 
 from torch import nn
 
-from .utils import BaseModule
+from .utils import InfoModule
 
 
-class MLP(nn.Sequential, BaseModule):
+class MLP(nn.Sequential, InfoModule):
     def __init__(self, layers: List[Tuple[int, int]]) -> None:
         super().__init__(
             *[

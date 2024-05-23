@@ -58,6 +58,7 @@ _RESIDUAL_ACTIVATIONS: Final[Dict[str, Callable[[th.Tensor], th.Tensor]]] = {
 class ModelOptions(NamedTuple):
     model_options: ConvOptions
     activation_compound_options: Tuple[str, Dict[str, str]]
+    cuda: bool
 
     def __to_list(self, l_i: List[int] | int) -> List[int]:
         return (
@@ -115,7 +116,6 @@ class TrainOptions(NamedTuple):
     learning_rate: float
     nb_epoch: int
     save_every: int
-    cuda: bool
 
     def get_dataset(self) -> ClassificationDataset:
         return _get_dataset(self.dataset, self.dataset_path)
@@ -127,7 +127,6 @@ class InferOptions(NamedTuple):
     batch_size: int
     model_state_dict_path: str
     output_csv_path: str
-    cuda: bool
 
     def get_dataset(self) -> ClassificationDataset:
         return _get_dataset(self.dataset, self.dataset_path)

@@ -4,4 +4,4 @@ from .hermite import Hermite
 from .linear import LinearKAN, LinearKanLayers
 from .mlp import MLP
 from .spline import BSpline
-from .utils import ActivationFunction, BaseModule
+from .utils import ActivationFunction, InfoModule

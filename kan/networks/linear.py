@@ -5,7 +5,7 @@ import torch as th
 from torch import nn
 from torch.nn.init import normal_, xavier_normal_
 
-from .utils import ActivationFunction, BaseModule
+from .utils import ActivationFunction, InfoModule
 
 
 class LinearKAN(nn.Module):
@@ -48,7 +48,7 @@ class LinearKAN(nn.Module):
         )
 
 
-class LinearKanLayers(nn.Sequential, BaseModule):
+class LinearKanLayers(nn.Sequential, InfoModule):
     def __init__(
         self,
         layers: List[Tuple[int, int]],

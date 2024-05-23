@@ -12,7 +12,7 @@ from .metrics import PrecisionRecall
 from .options import ModelOptions, TrainOptions
 
 
-def train(kan_options: ModelOptions, train_options: TrainOptions) -> None:
+def train(model_options: ModelOptions, train_options: TrainOptions) -> None:
     # pylint: disable=too-many-locals,too-many-statements
 
     if not exists(train_options.output_path):
@@ -22,10 +22,10 @@ def train(kan_options: ModelOptions, train_options: TrainOptions) -> None:
             f"{train_options.output_path} is not a directory"
         )
 
-    if train_options.cuda:
+    if model_options.cuda:
         th.backends.cudnn.benchmark = True
 
-    model = kan_options.get_model()
+    model = model_options.get_model()
 
     optim = th.optim.Adam(model.parameters(), lr=train_options.learning_rate)
 
@@ -46,11 +46,8 @@ def train(kan_options: ModelOptions, train_options: TrainOptions) -> None:
         num_workers=6,
     )
 
-    if train_options.cuda:
-        model.cuda()
-        device = th.device("cuda")
-    else:
-        device = th.device("cpu")
+    device = th.device("cuda") if model_options.cuda else th.device("cpu")
+    model.to(device)
 
     train_metric = PrecisionRecall(dataset.get_class_nb(), 128)
     idx = 0

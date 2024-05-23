@@ -101,10 +101,13 @@ def main() -> None:
         type=str,
         action="append",
         required=True,
-        help='Usage : "-a activation_name '
+        help='Usage : "'
+        "-a activation_name "
         "-a key_1=value_1 "
         '-a key_2=value_2 ..."',
     )
+
+    parser.add_argument("--cuda", action="store_true")
 
     ########
     # Mode #
@@ -126,7 +129,6 @@ def main() -> None:
         "-lr", "--learning-rate", type=float, default=1e-4
     )
     train_parser.add_argument("--save-every", type=int, default=4096)
-    train_parser.add_argument("--cuda", action="store_true")
 
     # infer
     infer_parser = mode_parser.add_parser("infer")
@@ -137,7 +139,6 @@ def main() -> None:
     infer_parser.add_argument("model_state_dict_path", type=str)
     infer_parser.add_argument("-o", "--output-csv", type=str, required=True)
     infer_parser.add_argument("-b", "--batch-size", type=int, default=24)
-    infer_parser.add_argument("--cuda", action="store_true")
 
     args = parser.parse_args()
 
@@ -155,6 +156,7 @@ def main() -> None:
             args.residual_activation,
         ),
         _parse_activations(args.activation),
+        args.cuda,
     )
 
     if args.mode == "train":
@@ -169,7 +171,6 @@ def main() -> None:
                 args.learning_rate,
                 args.epochs,
                 args.save_every,
-                args.cuda,
             ),
         )
     elif args.mode == "infer":
@@ -181,7 +182,6 @@ def main() -> None:
                 args.batch_size,
                 args.model_state_dict_path,
                 args.output_csv,
-                args.cuda,
             ),
         )
     else:

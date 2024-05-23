@@ -48,8 +48,12 @@ class BSpline(ActivationFunction):
 
     @classmethod
     def from_dict(cls, options: Dict[str, str]) -> "ActivationFunction":
-        assert "degree" in options, "Must specify 'degree'"
-        assert "grid_size" in options, "Must specify 'grid_size'"
+        assert (
+            "degree" in options
+        ), 'Must specify "degree", example : "-a degree=2"'
+        assert (
+            "grid_size" in options
+        ), 'Must specify "grid_size", example : "-a grid_size=8"'
 
         return cls(
             int(options["degree"]),

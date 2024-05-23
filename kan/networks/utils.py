@@ -23,7 +23,7 @@ class ActivationFunction(ABC, nn.Module):
         pass
 
 
-class BaseModule(ABC, nn.Module):
+class InfoModule(ABC, nn.Module):
     def count_parameters(self) -> int:
         return sum(int(np.prod(p.size())) for p in self.parameters())
 

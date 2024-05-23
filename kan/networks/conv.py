@@ -7,7 +7,7 @@ from torch.nn import functional as F
 from torch.nn.init import normal_, xavier_normal_
 
 from .linear import LinearKAN
-from .utils import ActivationFunction, BaseModule
+from .utils import ActivationFunction, InfoModule
 
 
 # pylint: disable=too-many-instance-attributes
@@ -54,16 +54,9 @@ class Conv2dKan(nn.Module):
             size - self.__kernel_size + 2 * self.__padding
         ) // self.__stride + 1
 
-    def forward(self, x: th.Tensor) -> th.Tensor:
-        assert len(x.size()) == 4
-        assert x.size(1) == self.__in_channels
-
-        b, c, h, w = x.size()
-
-        output_height = self.__get_output_size(h)
-        output_width = self.__get_output_size(w)
-
-        windowed_x = F.unfold(
+    def __unfold(self, x: th.Tensor) -> th.Tensor:
+        b, c, _, _ = x.size()
+        return F.unfold(
             x,
             self.__kernel_size,
             1,
@@ -71,20 +64,30 @@ class Conv2dKan(nn.Module):
             self.__stride,
         ).view(b, c, 1, self.__kernel_size**2, -1)
 
+    def __activation(self, windowed_x: th.Tensor) -> th.Tensor:
+        # sum over hermite polynomials
+        return self.__res_act_fun(windowed_x) + th.sum(
+            self.__c * self.__act_fun(windowed_x), dim=-1
+        )
+
+    def forward(self, x: th.Tensor) -> th.Tensor:
+        assert len(x.size()) == 4
+        assert x.size(1) == self.__in_channels
+
+        b, _, h, w = x.size()
+
+        output_height = self.__get_output_size(h)
+        output_width = self.__get_output_size(w)
+
+        # sum over input space : dim=1
+        # sum over window : dim=2
         return th.sum(
-            th.sum(
-                self.__w
-                * (
-                    self.__res_act_fun(windowed_x)
-                    + th.sum(self.__c * self.__act_fun(windowed_x), dim=-1)
-                ),
-                dim=1,  # sum over input space
-            ),
-            dim=2,  # sum over window
+            th.sum(self.__w * self.__activation(self.__unfold(x)), dim=1),
+            dim=2,
         ).view(b, -1, output_height, output_width)
 
 
-class Conv2dKanLayers(nn.Sequential, BaseModule):
+class Conv2dKanLayers(nn.Sequential, InfoModule):
     def __init__(
         self,
         channels: List[Tuple[int, int]],

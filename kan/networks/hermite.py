@@ -35,6 +35,6 @@ class Hermite(ActivationFunction):
 
     @classmethod
     def from_dict(cls, options: Dict[str, str]) -> "ActivationFunction":
-        assert "n" in options, "Must specify 'n'"
+        assert "n" in options, 'Must specify "n", example : "-a n=5"'
 
         return cls(int(options["n"]))

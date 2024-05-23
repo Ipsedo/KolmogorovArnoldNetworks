@@ -43,11 +43,10 @@ def infer_on_dataset(
             y = y.to(device)
 
             o = model(x)
+            test_losses.append(F.cross_entropy(o, y, reduction="none"))
 
             predictions.append(F.softmax(o, -1))
             targets.append(y)
-
-            test_losses.append(F.cross_entropy(o, y, reduction="none"))
 
             test_metric.add(F.softmax(o, -1), y)
             prec, rec = test_metric.get()
@@ -67,11 +66,8 @@ def infer(model_options: ModelOptions, infer_options: InferOptions) -> None:
 
     model = model_options.get_model()
 
-    if infer_options.cuda:
-        model.cuda()
-        device = th.device("cuda")
-    else:
-        device = th.device("cpu")
+    device = th.device("cuda") if model_options.cuda else th.device("cpu")
+    model.to(device)
 
     model.load_state_dict(
         th.load(infer_options.model_state_dict_path, map_location=device)
