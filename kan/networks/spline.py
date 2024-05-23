@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from typing import Dict
 
 import torch as th
 
@@ -44,3 +45,13 @@ class BSpline(ActivationFunction):
 
     def get_size(self) -> int:
         return self.__grid_size + self.__degree
+
+    @classmethod
+    def from_dict(cls, options: Dict[str, str]) -> "ActivationFunction":
+        assert "degree" in options, "Must specify 'degree'"
+        assert "grid_size" in options, "Must specify 'grid_size'"
+
+        return cls(
+            int(options["degree"]),
+            int(options["grid_size"]),
+        )

@@ -1,5 +1,14 @@
 # -*- coding: utf-8 -*-
-from typing import Callable, Dict, Final, List, Literal, NamedTuple, Set, Tuple
+from typing import (
+    Callable,
+    Dict,
+    Final,
+    List,
+    Literal,
+    NamedTuple,
+    Tuple,
+    Type,
+)
 
 import torch as th
 from torch.nn import functional as F
@@ -32,7 +41,10 @@ class ConvOptions(NamedTuple):
 
 
 # Factory
-_ACTIVATIONS: Final[Set[str]] = {"hermite", "b-spline"}
+_ACTIVATIONS: Final[Dict[str, Type[ActivationFunction]]] = {
+    "hermite": Hermite,
+    "b-spline": BSpline,
+}
 _RESIDUAL_ACTIVATIONS: Final[Dict[str, Callable[[th.Tensor], th.Tensor]]] = {
     "relu": F.relu,
     "lrelu": F.leaky_relu,
@@ -57,19 +69,10 @@ class ModelOptions(NamedTuple):
     def get_model(self) -> Conv2dKanLayers:
         act_fun_name, act_fun_options = self.activation_compound_options
 
-        assert act_fun_name in _ACTIVATIONS
-
-        act_fun: ActivationFunction
-
-        if act_fun_name == "hermite":
-            act_fun = Hermite(int(act_fun_options["n"]))
-        elif act_fun_name == "b-spline":
-            act_fun = BSpline(
-                int(act_fun_options["degree"]),
-                int(act_fun_options["grid_size"]),
-            )
-        else:
-            raise ValueError(f"Unknown activation options: {act_fun_name}")
+        assert act_fun_name in _ACTIVATIONS, (
+            f'Unrecognized activation function "{act_fun_name}". '
+            f"Available options: {'|'.join(_ACTIVATIONS.keys())}"
+        )
 
         return Conv2dKanLayers(
             self.model_options.channels,
@@ -77,7 +80,7 @@ class ModelOptions(NamedTuple):
             self.__to_list(self.model_options.strides),
             self.__to_list(self.model_options.paddings),
             self.model_options.linear_sizes,
-            act_fun,
+            _ACTIVATIONS[act_fun_name].from_dict(act_fun_options),
             _RESIDUAL_ACTIVATIONS[self.model_options.residual_activation],
         )
 

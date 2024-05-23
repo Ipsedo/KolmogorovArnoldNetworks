@@ -51,16 +51,18 @@ def _parse_int_or_list_of_int(string: str) -> List[int] | int:
     return _parse_list_of_int(string)
 
 
-def _parse_activations(arg: str) -> Tuple[str, Dict[str, str]]:
-    args = arg.split(" ")
-    assert len(args) >= 1
+def _parse_activations(args: List[str]) -> Tuple[str, Dict[str, str]]:
+    option_args = {a for a in args if "=" in a}
+    non_option_args = {a for a in args if "=" not in a}
 
-    act_name = args[0]
+    assert len(non_option_args) == 1, "must specify activation name"
+
+    act_name = non_option_args.pop()
     options = {}
 
-    for a in args[1:]:
+    for a in option_args:
         key, value = a.split("=", 1)
-        options[key] = value
+        options[str(key).strip()] = str(value).strip()
 
     return act_name, options
 
@@ -97,8 +99,11 @@ def main() -> None:
         "-a",
         "--activation",
         type=str,
+        action="append",
         required=True,
-        help='Usage : "{hermite,b-spline} key_1=value_1 key_2=value_2 ..."',
+        help='Usage : "-a activation_name '
+        "-a key_1=value_1 "
+        '-a key_2=value_2 ..."',
     )
 
     ########

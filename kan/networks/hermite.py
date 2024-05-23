@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from typing import Dict
+
 import torch as th
 
 from .utils import ActivationFunction
@@ -30,3 +32,9 @@ class Hermite(ActivationFunction):
 
     def get_size(self) -> int:
         return self.__n
+
+    @classmethod
+    def from_dict(cls, options: Dict[str, str]) -> "ActivationFunction":
+        assert "n" in options, "Must specify 'n'"
+
+        return cls(int(options["n"]))

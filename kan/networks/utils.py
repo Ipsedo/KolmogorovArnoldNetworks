@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from abc import ABC, abstractmethod
 from statistics import mean
+from typing import Dict
 
 import numpy as np
 import torch as th
@@ -14,6 +15,11 @@ class ActivationFunction(ABC, nn.Module):
 
     @abstractmethod
     def forward(self, x: th.Tensor) -> th.Tensor:
+        pass
+
+    @classmethod
+    @abstractmethod
+    def from_dict(cls, options: Dict[str, str]) -> "ActivationFunction":
         pass
 
 
