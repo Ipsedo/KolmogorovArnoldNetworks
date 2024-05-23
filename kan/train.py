@@ -12,7 +12,7 @@ from .options import ModelOptions, TrainOptions
 
 
 def train(kan_options: ModelOptions, train_options: TrainOptions) -> None:
-    # pylint: disable=too-many-locals
+    # pylint: disable=too-many-locals,too-many-statements
 
     if not exists(train_options.output_path):
         makedirs(train_options.output_path)
@@ -28,13 +28,15 @@ def train(kan_options: ModelOptions, train_options: TrainOptions) -> None:
 
     optim = th.optim.Adam(model.parameters(), lr=train_options.learning_rate)
 
-    print("parameters :", model.count_parameters())
-
     dataset = train_options.get_dataset()
     train_dataset, eval_dataset = random_split(  # type: ignore
         dataset,
         [train_options.train_ratio, 1.0 - train_options.train_ratio],
     )
+
+    print("parameters :", model.count_parameters())
+    print("train dataset :", len(train_dataset))
+    print("eval dataset :", len(eval_dataset))
 
     train_dataloader = DataLoader(  # type: ignore
         train_dataset,
@@ -124,7 +126,7 @@ def train(kan_options: ModelOptions, train_options: TrainOptions) -> None:
                 prec, rec = test_metric.get()
 
                 test_tqdm_bar.set_description(
-                    f"Test loss epoch {e} : loss_mean = "
+                    f"Eval : loss = "
                     f"{th.mean(th.cat(test_losses, dim=0)):.4f}, "
                     f"prec = {prec:.4f}, "
                     f"rec = {rec:.4f}"
