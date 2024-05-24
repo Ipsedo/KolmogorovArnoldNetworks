@@ -44,6 +44,7 @@ def train(model_options: ModelOptions, train_options: TrainOptions) -> None:
         train_options.batch_size,
         shuffle=True,
         num_workers=6,
+        drop_last=True,
     )
 
     device = th.device("cuda") if model_options.cuda else th.device("cpu")
