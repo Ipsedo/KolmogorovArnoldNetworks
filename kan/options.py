@@ -57,7 +57,7 @@ def get_residual_activation_names() -> List[str]:
 
 
 class ModelOptions(NamedTuple):
-    model_options: ConvOptions
+    conv_options: ConvOptions
     activation_compound_options: Tuple[str, Dict[str, str]]
     cuda: bool
 
@@ -65,7 +65,7 @@ class ModelOptions(NamedTuple):
         return (
             l_i
             if isinstance(l_i, list)
-            else [l_i] * len(self.model_options.channels)
+            else [l_i] * len(self.conv_options.channels)
         )
 
     def get_model(self) -> Conv2dKanLayers:
@@ -77,13 +77,13 @@ class ModelOptions(NamedTuple):
         )
 
         return Conv2dKanLayers(
-            self.model_options.channels,
-            self.__to_list(self.model_options.kernel_sizes),
-            self.__to_list(self.model_options.strides),
-            self.__to_list(self.model_options.paddings),
-            self.model_options.linear_sizes,
+            self.conv_options.channels,
+            self.__to_list(self.conv_options.kernel_sizes),
+            self.__to_list(self.conv_options.strides),
+            self.__to_list(self.conv_options.paddings),
+            self.conv_options.linear_sizes,
             _ACTIVATIONS[act_fun_name].from_dict(act_fun_options),
-            _RESIDUAL_ACTIVATIONS[self.model_options.residual_activation],
+            _RESIDUAL_ACTIVATIONS[self.conv_options.residual_activation],
         )
 
 
