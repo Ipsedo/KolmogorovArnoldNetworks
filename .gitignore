@@ -131,4 +131,8 @@ dmypy.json
 # JetBrains
 .idea/
 
+# mlflow
+mlruns/
+
+# project outputs
 out/

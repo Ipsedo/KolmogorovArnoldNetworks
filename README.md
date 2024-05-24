@@ -2,6 +2,10 @@
 
 Implementation of Kolmogorov-Arnold Networks with PyTorch.
 
+What is new in this project :
+- Extension to 2D convolutions.
+- Extension to Hermite polynomials, in progress !
+
 ## Installation
 
 ```bash
@@ -17,7 +21,7 @@ $ pre-commit install
 
 ## Run example
 
-Train on Cifar10
+Train on Cifar10 :
 
 ```bash
 $ cd /path/to/KolmogorovArnoldNetworks
@@ -27,10 +31,16 @@ $ # with spline of degree 2 and grid size 8
 $ python -m kan "[(3,8),(8,16),(16,32),(32,64)]" "[(256,512),(512,10)]" -k 3 -s 2 -p 1 -r "silu" -a "b-spline" -a "degree=2" -a "grid_size=8" train "cifar10" "./out/cifar10" "./out/train_bspline_cifar10" -lr 1e-4 -b 64 -e 100 --train-ratio 0.7 --cuda --save-every 256
 ```
 
-## Features
+Train on ImageNet :
 
-- Extension to 2D convolutions.
-- Extension with Hermite polynomials, in progress !
+```bash
+$ # 1. download data on kaggle : https://www.kaggle.com/c/imagenet-object-localization-challenge
+$ # 2. remember about the path of ImageNet dataset
+$ # 3. start training :
+$ cd /path/to/KolmogorovArnoldNetworks
+$ # small network with hermite of degree 5
+$ python -m kan [(3,8),(8,16),(16,32),(32,40),(40,48),(48,56),(56,64)] [(256,512),(512,1000)] -r silu -k 3 -s 2 -p 1 -a hermite -ao n=5 --cuda train imagenet /path/to/imagenet-object-localization-challenge/ILSVRC/Data/CLS-LOC/train ./out/train_imagenet -e 1000 -b 64 -lr 1e-4 --save-every 4096 --train-ratio 0.7
+```
 
 ## References
 
