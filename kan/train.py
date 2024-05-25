@@ -148,7 +148,7 @@ def train(model_options: ModelOptions, train_options: TrainOptions) -> None:
         )
 
         pr_test = PrecisionRecall(dataset.get_class_nb(), None)
-        pr_test.add(F.softmax(preds - 1), target)
+        pr_test.add(F.softmax(preds, -1), target)
         prec, rec = pr_test.get()
 
         mlflow.log_metrics(
