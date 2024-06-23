@@ -43,9 +43,9 @@ def infer_on_dataset(
             y = y.to(device)
 
             o = model(x)
-            test_losses.append(F.cross_entropy(o, y, reduction="none"))
+            test_losses.append(F.cross_entropy(o, y))
 
-            predictions.append(F.softmax(o, -1))
+            predictions.append(o)
             targets.append(y)
 
             test_metric.add(F.softmax(o, -1), y)
@@ -81,12 +81,14 @@ def infer(model_options: ModelOptions, infer_options: InferOptions) -> None:
         device,
     )
 
+    predicted_proba = F.softmax(predictions, dim=-1)
+
     df = pd.DataFrame(
         {
             "id": th.arange(predictions.size(0)).numpy().tolist(),
-            "predictions": [
+            "predicted_proba": [
                 ",".join([str(f) for f in p.cpu().numpy().tolist()])
-                for p in predictions
+                for p in predicted_proba
             ],
             "targets": targets.cpu().numpy().tolist(),
         }
