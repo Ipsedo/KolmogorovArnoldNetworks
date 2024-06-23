@@ -14,7 +14,7 @@ from torchvision.datasets import (
 )
 from torchvision.transforms import CenterCrop, Compose, Resize, ToTensor
 
-from .transform import Flatten, MinMaxNorm, ToDType, ToRGB
+from .transform import Flatten, MinMaxNorm, RangeChange, ToDType, ToRGB
 
 # pylint: disable=too-many-ancestors
 
@@ -128,6 +128,7 @@ class TensorImageNet(ImageFolder, ClassificationDataset):
                     ToDType(th.float),
                     Resize(256),
                     CenterCrop(224),
+                    RangeChange(-1.0, 1.0),
                 ]
             ),
             target_transform=None,

@@ -44,3 +44,12 @@ class ToRGB:
         if len(x.size()) == 3 and x.size(0) == 1:
             return x.repeat(3, 1, 1)
         return x
+
+
+class RangeChange:
+    def __init__(self, start: float, end: float) -> None:
+        self.__start = start
+        self.__end = end
+
+    def __call__(self, x: th.Tensor) -> th.Tensor:
+        return x * (self.__end - self.__start) + self.__start

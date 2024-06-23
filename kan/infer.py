@@ -28,7 +28,6 @@ def infer_on_dataset(
             num_workers=6,
         )
 
-        test_losses = []
         test_metric = PrecisionRecall(class_nb, None)
 
         test_tqdm_bar = tqdm(test_dataloader)
@@ -43,7 +42,6 @@ def infer_on_dataset(
             y = y.to(device)
 
             o = model(x)
-            test_losses.append(F.cross_entropy(o, y))
 
             predictions.append(o)
             targets.append(y)
@@ -52,10 +50,7 @@ def infer_on_dataset(
             prec, rec = test_metric.get()
 
             test_tqdm_bar.set_description(
-                f"Eval : loss = "
-                f"{th.mean(th.cat(test_losses, dim=0)):.4f}, "
-                f"prec = {prec:.4f}, "
-                f"rec = {rec:.4f}"
+                f"Eval : " f"prec = {prec:.4f}, " f"rec = {rec:.4f}"
             )
 
         return th.cat(predictions, dim=0), th.cat(targets, dim=0)
