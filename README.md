@@ -39,7 +39,7 @@ $ # 2. remember about the path of ImageNet dataset
 $ # 3. start training :
 $ cd /path/to/KolmogorovArnoldNetworks
 $ # small network with hermite of degree 5
-$ python -m kan [(3,8),(8,16),(16,32),(32,40),(40,48),(48,56),(56,64)] [(256,512),(512,1000)] -r silu -k 3 -s 2 -p 1 -a hermite -ao n=5 --cuda train imagenet /path/to/imagenet-object-localization-challenge/ILSVRC/Data/CLS-LOC/train ./out/train_imagenet -e 1000 -b 64 -lr 1e-4 --save-every 4096 --train-ratio 0.7
+$ python -m kan "[(3,16),(16,32),(32,48),(48,64)]" "[(256,1000)]" -r "silu" -k 5 -s 4 -p 2 -a "hermite" -ao "n=5" --cuda train imagenet "/path/to/imagenet-object-localization-challenge/ILSVRC/Data/CLS-LOC/train" "./out/train_imagenet" -e 1000 -b 24 -lr 1e-3 --save-every 4096 --train-ratio 0.7
 ```
 
 ## References

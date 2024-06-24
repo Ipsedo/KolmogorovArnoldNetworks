@@ -126,8 +126,8 @@ class TensorImageNet(ImageFolder, ClassificationDataset):
                 [
                     ToTensor(),
                     ToDType(th.float),
-                    Resize(256),
-                    CenterCrop(224),
+                    Resize(448),
+                    CenterCrop(384),
                     RangeChange(-1.0, 1.0),
                 ]
             ),

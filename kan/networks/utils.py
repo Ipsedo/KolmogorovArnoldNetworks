@@ -29,3 +29,9 @@ class InfoModule(ABC, nn.Module):
 
     def grad_norm(self) -> float:
         return mean(float(p.norm().item()) for p in self.parameters())
+
+
+class PrintSize(nn.Module):
+    def forward(self, x: th.Tensor) -> th.Tensor:
+        print(x.size())
+        return x

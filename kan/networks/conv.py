@@ -98,6 +98,10 @@ class Conv2dKanLayers(nn.Sequential, InfoModule):
         act_fun: ActivationFunction,
         res_act_fun: Callable[[th.Tensor], th.Tensor],
     ) -> None:
+        assert (
+            len(channels) == len(kernel_sizes) == len(strides) == len(paddings)
+        )
+
         conv_layers = [
             nn.Sequential(
                 nn.BatchNorm2d(c_i, affine=False),
