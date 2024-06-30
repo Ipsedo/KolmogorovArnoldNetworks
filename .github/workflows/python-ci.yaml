@@ -1,6 +1,6 @@
 # Ipsedo's Python continuous integration
 
-name: Python package
+name: Python continuous integration
 
 on:
   push:
