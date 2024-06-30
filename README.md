@@ -3,8 +3,12 @@
 Implementation of Kolmogorov-Arnold Networks with PyTorch.
 
 What is new in this project :
-- Extension to 2D convolutions.
+- Extension to 2D convolutions (classification networks).
 - Extension to Hermite polynomials, in progress !
+
+What is being done at this moment :
+- benchmark on images classification datasets
+- thinking on new features / evolutions (like using Hermite polynomials)
 
 ## Installation
 
@@ -15,7 +19,7 @@ $ python -m venv venv
 $ source ./venv/bin/activate
 $ # install requirements
 $ pip install -r requirements.txt
-$ # install pre-commit (needs "git init" command)
+$ # Optional : install pre-commit (needs "git init" command)
 $ pre-commit install
 ```
 
@@ -36,10 +40,10 @@ Train on ImageNet :
 ```bash
 $ # 1. download data on kaggle : https://www.kaggle.com/c/imagenet-object-localization-challenge
 $ # 2. remember about the path of ImageNet dataset
-$ # 3. start training :
+$ # 3. ready for training :
 $ cd /path/to/KolmogorovArnoldNetworks
 $ # small network with hermite of degree 5
-$ python -m kan "[(3,8),(8,16),(16,32),(32,64)]" "[(256,1000)]" -r "silu" -k 5 -s 4 -p 2 -a "hermite" -ao "n=5" --cuda train imagenet "/path/to/imagenet-object-localization-challenge/ILSVRC/Data/CLS-LOC/train" "./out/train_imagenet" -e 1000 -b 64 -lr 1e-3 --save-every 4096 --train-ratio 0.7
+$ python -m kan "[(3,8),(8,16),(16,32),(32,64)]" "[(256,1000)]" -r "silu" -k 5 -s 4 -p 2 -a "hermite" -ao "n=5" --cuda train imagenet "/path/to/imagenet-object-localization-challenge/ILSVRC/Data/CLS-LOC/train" "./out/train_imagenet" -e 1000 -b 64 -lr 1e-4 --save-every 4096 --train-ratio 0.7
 ```
 
 ## References
