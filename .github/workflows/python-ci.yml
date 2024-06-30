@@ -1,0 +1,48 @@
+# Ipsedo's Python continuous integration
+
+name: Python package
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  python_ci:
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: stefanzweifel/git-auto-commit-action@v5
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.11"
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Clean files
+      run: |
+        python -m pre_commit_hooks.end_of_file_fixer
+        python -m pre_commit_hooks.trailing_whitespace
+        python -m pre_commit_hooks.check_toml
+        python -m pre_commit_hooks.check_yaml
+        python -m pre_commit_hooks.fix_encoding_pragma
+        python -m pre_commit_hooks.mixed_line_ending
+    - name: Format python code
+      run: |
+        python -m pycln --config pyproject.toml
+        python -m isort .
+        python -m black . --config pyproject.toml
+    - name: Check code
+      run: |
+        python -m mypy kan tests
+        python -m pylint kan tests
+    - name: Test code
+      run: |
+        pytest test

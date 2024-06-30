@@ -10,6 +10,10 @@ gdown
 mlflow
 
 pre-commit
+pre-commit-hooks
+pycln
+isort
+black[jupyter]
 mypy
 pylint
 pytest
