@@ -46,7 +46,7 @@ def train(model_options: ModelOptions, train_options: TrainOptions) -> None:
         train_dataset,
         train_options.batch_size,
         shuffle=True,
-        num_workers=6,
+        num_workers=8,
         drop_last=True,
     )
 

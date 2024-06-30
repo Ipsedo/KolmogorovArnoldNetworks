@@ -25,7 +25,7 @@ def infer_on_dataset(
             dataset,
             batch_size,
             shuffle=False,
-            num_workers=6,
+            num_workers=8,
         )
 
         test_metric = PrecisionRecall(class_nb, None)
