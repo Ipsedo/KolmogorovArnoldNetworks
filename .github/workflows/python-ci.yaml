@@ -43,8 +43,8 @@ jobs:
         python -m pre_commit_hooks.mixed_line_ending $PY_FILES $TOML_FILES $YML_FILES $MD_FILES $TXT_FILES
     - name: Format python code
       run: |
-        python -m pycln --config pyproject.toml
-        python -m isort .
+        python -m pycln . --config pyproject.toml
+        python -m isort . --settings-path pyproject.toml
         python -m black . --config pyproject.toml
     - name: Check code
       run: |
