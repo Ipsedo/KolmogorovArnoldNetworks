@@ -52,4 +52,4 @@ jobs:
         python -m pylint kan tests
     - name: Test code
       run: |
-        pytest test
+        pytest tests
