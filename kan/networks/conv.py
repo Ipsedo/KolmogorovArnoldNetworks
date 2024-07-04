@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
-from typing import Callable, List, Tuple
+from typing import Callable
 
 import torch as th
 from torch import nn
 from torch.nn import functional as F
 from torch.nn.init import normal_, xavier_normal_
 
-from .linear import LinearKAN
-from .utils import ActivationFunction, InfoModule
+from .utils import ActivationFunction
 
 
 # pylint: disable=too-many-instance-attributes
@@ -27,7 +26,11 @@ class Conv2dKan(nn.Module):
         self.__act_fun = act_fun
         self.__res_act_fun = res_act_fun
 
-        self.__w = nn.Parameter(
+        self.__w_b = nn.Parameter(
+            th.ones(in_channels, out_channels, kernel_size * kernel_size, 1)
+        )
+
+        self.__w_s = nn.Parameter(
             th.ones(in_channels, out_channels, kernel_size * kernel_size, 1)
         )
 
@@ -41,7 +44,8 @@ class Conv2dKan(nn.Module):
             )
         )
 
-        xavier_normal_(self.__w)
+        xavier_normal_(self.__w_b, 1)
+        normal_(self.__w_s, 0, 1e-3)
         normal_(self.__c, 0, 1e-1)
 
         self.__in_channels = in_channels
@@ -66,8 +70,11 @@ class Conv2dKan(nn.Module):
 
     def __activation(self, windowed_x: th.Tensor) -> th.Tensor:
         # sum over function approximation
-        return self.__res_act_fun(windowed_x) + th.sum(
-            self.__c * self.__act_fun(windowed_x), dim=-1
+        return th.sum(
+            self.__w_b * self.__res_act_fun(windowed_x)
+            + self.__w_s
+            * th.sum(self.__c * self.__act_fun(windowed_x), dim=-1),
+            dim=1,
         )
 
     def forward(self, x: th.Tensor) -> th.Tensor:
@@ -79,47 +86,8 @@ class Conv2dKan(nn.Module):
         output_height = self.__get_output_size(h)
         output_width = self.__get_output_size(w)
 
-        # sum over input space : dim=1
         # sum over window : dim=2
         return th.sum(
-            th.sum(self.__w * self.__activation(self.__unfold(x)), dim=1),
+            self.__activation(self.__unfold(x)),
             dim=2,
         ).view(b, -1, output_height, output_width)
-
-
-class Conv2dKanLayers(nn.Sequential, InfoModule):
-    def __init__(
-        self,
-        channels: List[Tuple[int, int]],
-        kernel_sizes: List[int],
-        strides: List[int],
-        paddings: List[int],
-        linear_sizes: List[Tuple[int, int]],
-        act_fun: ActivationFunction,
-        res_act_fun: Callable[[th.Tensor], th.Tensor],
-    ) -> None:
-        assert (
-            len(channels) == len(kernel_sizes) == len(strides) == len(paddings)
-        )
-
-        conv_layers = [
-            nn.Sequential(
-                nn.BatchNorm2d(c_i, affine=False),
-                Conv2dKan(c_i, c_o, k, s, p, act_fun, res_act_fun),
-            )
-            for (c_i, c_o), k, s, p in zip(
-                channels, kernel_sizes, strides, paddings
-            )
-        ]
-
-        flatten_layer = [nn.Flatten(1, -1)]
-
-        clf_layers = [
-            nn.Sequential(
-                nn.BatchNorm1d(i, affine=False),
-                LinearKAN(i, o, act_fun, res_act_fun),
-            )
-            for i, o in linear_sizes
-        ]
-
-        super().__init__(*conv_layers + flatten_layer + clf_layers)
