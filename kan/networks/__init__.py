@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-from .conv import Conv2dKan, Conv2dKanLayers
+from .conv import Conv2dKan
 from .hermite import Hermite
-from .linear import LinearKAN, LinearKanLayers
+from .linear import LinearKAN
 from .mlp import MLP
+from .networks import Conv2dKanLayers, LinearKanLayers
 from .spline import BSpline
 from .utils import ActivationFunction, InfoModule
