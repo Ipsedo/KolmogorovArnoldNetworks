@@ -29,9 +29,9 @@ class LinearKAN(nn.Module):
             th.ones(in_features, out_features, self.__act_fun.get_size())
         )
 
-        xavier_normal_(self.__w_b, 1)
-        normal_(self.__w_s, 0, 1e-3)
-        normal_(self.__c, 0, 1e-1)
+        xavier_normal_(self.__w_b, 1e-3)
+        xavier_normal_(self.__w_s, 1e-3)
+        normal_(self.__c, 0, 1e-3)
 
     def forward(self, x: th.Tensor) -> th.Tensor:
         assert len(x.size()) == 2

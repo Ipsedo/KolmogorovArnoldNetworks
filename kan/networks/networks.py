@@ -38,7 +38,7 @@ class Conv2dKanLayers(nn.Sequential, InfoModule):
 
         conv_layers = [
             nn.Sequential(
-                nn.BatchNorm2d(c_i, affine=False),
+                nn.BatchNorm2d(c_i),
                 Conv2dKan(c_i, c_o, k, s, p, act_fun, res_act_fun),
             )
             for (c_i, c_o), k, s, p in zip(
@@ -50,7 +50,7 @@ class Conv2dKanLayers(nn.Sequential, InfoModule):
 
         clf_layers = [
             nn.Sequential(
-                nn.BatchNorm1d(i, affine=False),
+                nn.BatchNorm1d(i),
                 LinearKAN(i, o, act_fun, res_act_fun),
             )
             for i, o in linear_sizes
