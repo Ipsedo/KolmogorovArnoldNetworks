@@ -37,10 +37,7 @@ class Conv2dKanLayers(nn.Sequential, InfoModule):
         )
 
         conv_layers = [
-            nn.Sequential(
-                nn.BatchNorm2d(c_i),
-                Conv2dKan(c_i, c_o, k, s, p, act_fun, res_act_fun),
-            )
+            Conv2dKan(c_i, c_o, k, s, p, act_fun, res_act_fun)
             for (c_i, c_o), k, s, p in zip(
                 channels, kernel_sizes, strides, paddings
             )
@@ -49,11 +46,7 @@ class Conv2dKanLayers(nn.Sequential, InfoModule):
         flatten_layer = [nn.Flatten(1, -1)]
 
         clf_layers = [
-            nn.Sequential(
-                nn.BatchNorm1d(i),
-                LinearKAN(i, o, act_fun, res_act_fun),
-            )
-            for i, o in linear_sizes
+            LinearKAN(i, o, act_fun, res_act_fun) for i, o in linear_sizes
         ]
 
         super().__init__(*conv_layers + flatten_layer + clf_layers)

@@ -30,7 +30,7 @@ def b_spline(
             __knots(curr_i_s + curr_k + 1) - __knots(curr_i_s + 1)
         )
 
-    return __b_spline(i_s, k)
+    return th.movedim(__b_spline(i_s, k), -1, 1)
 
 
 class BSpline(ActivationFunction):
