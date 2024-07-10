@@ -13,7 +13,13 @@ from .data import (
     TensorImageNet,
     TensorMNIST,
 )
-from .networks import ActivationFunction, BSpline, Conv2dKanLayers, Hermite
+from .networks import (
+    ActivationFunction,
+    BSpline,
+    Conv2dKanLayers,
+    Hermite,
+    Tchebychev,
+)
 
 # Models
 
@@ -36,6 +42,7 @@ class ConvOptions(NamedTuple):
 _ACTIVATIONS: Final[Dict[str, Type[ActivationFunction]]] = {
     "hermite": Hermite,
     "b-spline": BSpline,
+    "tchebychev": Tchebychev,
 }
 
 _RESIDUAL_ACTIVATIONS: Final[Dict[str, Callable[[th.Tensor], th.Tensor]]] = {
