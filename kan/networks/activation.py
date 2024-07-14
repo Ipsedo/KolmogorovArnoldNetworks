@@ -1,7 +1,9 @@
+# -*- coding: utf-8 -*-
 from abc import ABC, abstractmethod
-from torch import nn
 from typing import Dict
+
 import torch as th
+from torch import nn
 
 
 class ActivationFunction(ABC, nn.Module):
@@ -27,7 +29,7 @@ class PolyCoefActivation(ActivationFunction, ABC):
 
         self.__n = n
         self._coefficients: th.Tensor
-        self.register_buffer('_coefficients', coefficients)
+        self.register_buffer("_coefficients", coefficients)
 
     def forward(self, x: th.Tensor) -> th.Tensor:
         return th.einsum(

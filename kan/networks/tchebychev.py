@@ -4,7 +4,7 @@ from typing import Dict
 
 import torch as th
 
-from .activation import PolyCoefActivation, ActivationFunction
+from .activation import ActivationFunction, PolyCoefActivation
 
 
 def tcheb_coef(n: int) -> th.Tensor:

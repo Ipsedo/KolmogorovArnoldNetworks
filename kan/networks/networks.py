@@ -4,9 +4,9 @@ from typing import Callable, List, Tuple
 import torch as th
 from torch import nn
 
+from .activation import ActivationFunction
 from .conv import Conv2dKan
 from .linear import LinearKAN
-from .activation import ActivationFunction
 from .utils import InfoModule
 
 

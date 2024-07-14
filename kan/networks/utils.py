@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-from abc import ABC, abstractmethod
+from abc import ABC
 from statistics import mean
-from typing import Dict
 
 import numpy as np
 import torch as th
