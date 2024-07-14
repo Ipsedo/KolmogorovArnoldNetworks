@@ -8,21 +8,6 @@ import torch as th
 from torch import nn
 
 
-class ActivationFunction(ABC, nn.Module):
-    @abstractmethod
-    def get_size(self) -> int:
-        pass
-
-    @abstractmethod
-    def forward(self, x: th.Tensor) -> th.Tensor:
-        pass
-
-    @classmethod
-    @abstractmethod
-    def from_dict(cls, options: Dict[str, str]) -> "ActivationFunction":
-        pass
-
-
 class InfoModule(ABC, nn.Module):
     def count_parameters(self) -> int:
         return sum(int(np.prod(p.size())) for p in self.parameters())

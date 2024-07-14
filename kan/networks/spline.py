@@ -3,7 +3,7 @@ from typing import Dict
 
 import torch as th
 
-from .utils import ActivationFunction
+from .activation import ActivationFunction
 
 
 def b_spline(

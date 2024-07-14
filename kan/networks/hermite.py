@@ -4,7 +4,7 @@ from typing import Dict
 
 import torch as th
 
-from .utils import ActivationFunction
+from .activation import ActivationFunction, PolyCoefActivation
 
 
 def __old_hermite(x: th.Tensor, n: int) -> th.Tensor:
@@ -47,21 +47,9 @@ def hermite_coef(n: int) -> th.Tensor:
     return coef
 
 
-class Hermite(ActivationFunction):
+class Hermite(PolyCoefActivation):
     def __init__(self, n: int) -> None:
-        super().__init__()
-        self.__n = n
-        self._coef: th.Tensor
-        self.register_buffer("_coef", hermite_coef(n))
-
-    def forward(self, x: th.Tensor) -> th.Tensor:
-        out = x.unsqueeze(-1).expand(*x.size(), self.__n + 1)
-        out = th.pow(out, th.arange(0, self.__n + 1, device=x.device))
-        out = th.einsum("...a,ab->...b", out, self._coef)
-        return out.movedim(-1, 1)
-
-    def get_size(self) -> int:
-        return self.__n
+        super().__init__(n, hermite_coef(n))
 
     @classmethod
     def from_dict(cls, options: Dict[str, str]) -> "ActivationFunction":

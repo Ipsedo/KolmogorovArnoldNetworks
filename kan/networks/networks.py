@@ -6,7 +6,8 @@ from torch import nn
 
 from .conv import Conv2dKan
 from .linear import LinearKAN
-from .utils import ActivationFunction, InfoModule
+from .activation import ActivationFunction
+from .utils import InfoModule
 
 
 class LinearKanLayers(nn.Sequential, InfoModule):

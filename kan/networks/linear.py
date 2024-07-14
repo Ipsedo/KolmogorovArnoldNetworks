@@ -5,7 +5,7 @@ import torch as th
 from torch import nn
 from torch.nn.init import normal_, xavier_normal_
 
-from .utils import ActivationFunction
+from .activation import ActivationFunction
 
 
 class LinearKAN(nn.Module):

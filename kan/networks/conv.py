@@ -6,7 +6,7 @@ from torch import nn
 from torch.nn import functional as F
 from torch.nn.init import normal_, xavier_normal_
 
-from .utils import ActivationFunction
+from .activation import ActivationFunction
 
 
 # pylint: disable=too-many-instance-attributes
