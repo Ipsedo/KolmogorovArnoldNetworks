@@ -4,7 +4,7 @@ from typing import Dict
 
 import torch as th
 
-from .utils import ActivationFunction
+from .activation import ActivationFunction, PolyCoefActivation
 
 
 def tcheb_coef(n: int) -> th.Tensor:
@@ -25,25 +25,9 @@ def tcheb_coef(n: int) -> th.Tensor:
 
 
 # pylint: disable=duplicate-code
-class Tchebychev(ActivationFunction):
+class Tchebychev(PolyCoefActivation):
     def __init__(self, n: int) -> None:
-        super().__init__()
-        self.__n = n
-        self._coef: th.Tensor
-        self.register_buffer("_coef", tcheb_coef(n))
-
-    def forward(self, x: th.Tensor) -> th.Tensor:
-        return th.einsum(
-            "b...a,ac->bc...",
-            th.pow(
-                th.tanh(x.unsqueeze(-1)),
-                th.arange(0, self.__n + 1, device=x.device),
-            ),
-            self._coef,
-        )
-
-    def get_size(self) -> int:
-        return self.__n
+        super().__init__(n, tcheb_coef(n))
 
     @classmethod
     def from_dict(cls, options: Dict[str, str]) -> "ActivationFunction":

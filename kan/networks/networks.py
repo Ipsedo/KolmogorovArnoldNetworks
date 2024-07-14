@@ -4,9 +4,10 @@ from typing import Callable, List, Tuple
 import torch as th
 from torch import nn
 
+from .activation import ActivationFunction
 from .conv import Conv2dKan
 from .linear import LinearKAN
-from .utils import ActivationFunction, InfoModule
+from .utils import InfoModule
 
 
 class LinearKanLayers(nn.Sequential, InfoModule):

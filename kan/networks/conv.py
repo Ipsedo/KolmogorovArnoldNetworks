@@ -6,7 +6,7 @@ from torch import nn
 from torch.nn import functional as F
 from torch.nn.init import normal_, xavier_normal_
 
-from .utils import ActivationFunction
+from .activation import ActivationFunction
 
 
 # pylint: disable=too-many-instance-attributes
@@ -42,9 +42,9 @@ class Conv2dKan(nn.Module):
             )
         )
 
-        xavier_normal_(self._w_b, 1.0 / kernel_size ** 2)
+        xavier_normal_(self._w_b, 1.0 / kernel_size**2)
         # xavier_normal_(self._w_s, 1e-3)
-        normal_(self._c, 0, 1e-1 / kernel_size ** 2)
+        normal_(self._c, 0, 1e-1 / kernel_size**2)
 
         self._in_channels = in_channels
         self._kernel_size = kernel_size
@@ -53,7 +53,7 @@ class Conv2dKan(nn.Module):
 
     def __get_output_size(self, size: int) -> int:
         return (
-                size - self._kernel_size + 2 * self._padding
+            size - self._kernel_size + 2 * self._padding
         ) // self._stride + 1
 
     def forward(self, x: th.Tensor) -> th.Tensor:
