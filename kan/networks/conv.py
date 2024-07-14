@@ -27,11 +27,11 @@ class Conv2dKan(nn.Module):
         self.__res_act_fun = res_act_fun
 
         self._w_b = nn.Parameter(
-            th.ones(out_channels, in_channels * kernel_size * kernel_size, 1)
+            th.ones(out_channels, in_channels * kernel_size * kernel_size)
         )
 
         self._w_s = nn.Parameter(
-            th.ones(out_channels, in_channels * kernel_size * kernel_size, 1)
+            th.ones(out_channels, in_channels * kernel_size * kernel_size)
         )
 
         self._c = nn.Parameter(
@@ -39,13 +39,12 @@ class Conv2dKan(nn.Module):
                 self.__act_fun.get_size(),
                 out_channels,
                 in_channels * kernel_size * kernel_size,
-                1,
             )
         )
 
-        xavier_normal_(self._w_b, 1.0 / kernel_size**2)
+        xavier_normal_(self._w_b, 1.0 / kernel_size ** 2)
         # xavier_normal_(self._w_s, 1e-3)
-        normal_(self._c, 0, 1e-1 / kernel_size**2)
+        normal_(self._c, 0, 1e-1 / kernel_size ** 2)
 
         self._in_channels = in_channels
         self._kernel_size = kernel_size
@@ -54,7 +53,7 @@ class Conv2dKan(nn.Module):
 
     def __get_output_size(self, size: int) -> int:
         return (
-            size - self._kernel_size + 2 * self._padding
+                size - self._kernel_size + 2 * self._padding
         ) // self._stride + 1
 
     def forward(self, x: th.Tensor) -> th.Tensor:
@@ -74,11 +73,15 @@ class Conv2dKan(nn.Module):
         )
 
         out: th.Tensor = th.sum(
-            self.__res_act_fun(out_unfolded).unsqueeze(1) * self._w_b
-            + self._w_s
-            * th.sum(
-                self.__act_fun(out_unfolded).unsqueeze(2) * self._c,
-                dim=1,
+            th.einsum(
+                "bkl,ok->bokl", self.__res_act_fun(out_unfolded), self._w_b
+            )
+            + th.einsum(
+                "bokl,ok->bokl",
+                th.einsum(
+                    "bakl,aok->bokl", self.__act_fun(out_unfolded), self._c
+                ),
+                self._w_s,
             ),
             dim=2,
         ).unflatten(-1, (output_height, output_width))

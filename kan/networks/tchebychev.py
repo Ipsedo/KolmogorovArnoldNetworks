@@ -33,10 +33,14 @@ class Tchebychev(ActivationFunction):
         self.register_buffer("_coef", tcheb_coef(n))
 
     def forward(self, x: th.Tensor) -> th.Tensor:
-        out = th.tanh(x.unsqueeze(-1).expand(*x.size(), self.__n + 1))
-        out = th.pow(out, th.arange(0, self.__n + 1, device=x.device))
-        out = th.einsum("...a,ab->...b", out, self._coef)
-        return out.movedim(-1, 1)
+        return th.einsum(
+            "b...a,ac->bc...",
+            th.pow(
+                th.tanh(x.unsqueeze(-1)),
+                th.arange(0, self.__n + 1, device=x.device),
+            ),
+            self._coef,
+        )
 
     def get_size(self) -> int:
         return self.__n
