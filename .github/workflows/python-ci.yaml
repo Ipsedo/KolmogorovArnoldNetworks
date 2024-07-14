@@ -17,7 +17,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - uses: stefanzweifel/git-auto-commit-action@v5
     - name: Set up Python 3.11
       uses: actions/setup-python@v3
       with:
@@ -35,17 +34,18 @@ jobs:
         YML_FILES=$(ls -d **/*.yaml)
         MD_FILES=$(ls -d **/*.md)
         TXT_FILES=$(ls -d **/*.txt)
-        python -m pre_commit_hooks.end_of_file_fixer $PY_FILES $TOML_FILES $YML_FILES $MD_FILES $TXT_FILES
-        python -m pre_commit_hooks.trailing_whitespace_fixer $PY_FILES $TOML_FILES $YML_FILES $MD_FILES $TXT_FILES
+        python -m pre_commit_hooks.end_of_file_fixer $PY_FILES $TOML_FILES $YML_FILES $MD_FILES $TXT_FILES >> /dev/null
+        python -m pre_commit_hooks.trailing_whitespace_fixer $PY_FILES $TOML_FILES $YML_FILES $MD_FILES $TXT_FILES >> /dev/null
         python -m pre_commit_hooks.check_toml $TOML_FILES
         python -m pre_commit_hooks.check_yaml $YML_FILES
-        python -m pre_commit_hooks.fix_encoding_pragma $PY_FILES
-        python -m pre_commit_hooks.mixed_line_ending $PY_FILES $TOML_FILES $YML_FILES $MD_FILES $TXT_FILES
+        python -m pre_commit_hooks.fix_encoding_pragma $PY_FILES >> /dev/null
+        python -m pre_commit_hooks.mixed_line_ending $PY_FILES $TOML_FILES $YML_FILES $MD_FILES $TXT_FILES >> /dev/null
     - name: Format python code
       run: |
         python -m pycln . --config pyproject.toml
         python -m isort . --settings-path pyproject.toml
         python -m black . --config pyproject.toml
+    - uses: stefanzweifel/git-auto-commit-action@v5
     - name: Check code
       run: |
         python -m mypy kan tests
