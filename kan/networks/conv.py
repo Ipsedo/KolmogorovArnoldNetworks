@@ -42,9 +42,8 @@ class Conv2dKan(nn.Module):
             )
         )
 
-        xavier_normal_(self._w_b, 1.0 / kernel_size**2)
-        # xavier_normal_(self._w_s, 1e-3)
-        normal_(self._c, 0, 1e-1 / kernel_size**2)
+        xavier_normal_(self._w_b)
+        normal_(self._c, 0, 1e-1)
 
         self._in_channels = in_channels
         self._kernel_size = kernel_size

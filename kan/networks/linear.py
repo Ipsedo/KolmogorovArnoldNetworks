@@ -34,7 +34,7 @@ class LinearKAN(nn.Module):
         assert len(x.size()) == 2
 
         return th.sum(
-            self._w_s * th.sum(self.__act_fun(x).unsqueeze(2) * self._c, dim=1)
-            + self._w_b * self.__res_act_fun(x).unsqueeze(1),
+            self._w_s * th.einsum("bai,aoi->boi", self.__act_fun(x), self._c)
+            + th.einsum("bi,oi->boi", self.__res_act_fun(x), self._w_b),
             dim=2,
         )
