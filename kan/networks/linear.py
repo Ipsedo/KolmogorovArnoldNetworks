@@ -27,14 +27,18 @@ class LinearKAN(nn.Module):
             th.ones(self.__act_fun.get_size(), out_features, in_features)
         )
 
-        xavier_normal_(self._w_b)
-        normal_(self._c, 0, 1e-1)
+        xavier_normal_(self._w_b, gain=1e-3)
+        normal_(self._c, 0, 1e-3)
 
     def forward(self, x: th.Tensor) -> th.Tensor:
         assert len(x.size()) == 2
 
         return th.sum(
-            self._w_s * th.einsum("bai,aoi->boi", self.__act_fun(x), self._c)
+            th.einsum(
+                "boi,oi->boi",
+                th.einsum("bai,aoi->boi", self.__act_fun(x), self._c),
+                self._w_s,
+            )
             + th.einsum("bi,oi->boi", self.__res_act_fun(x), self._w_b),
             dim=2,
         )
