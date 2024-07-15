@@ -29,6 +29,9 @@ class Tchebychev(PolyCoefActivation):
     def __init__(self, n: int) -> None:
         super().__init__(n, tcheb_coef(n))
 
+    def forward(self, x: th.Tensor) -> th.Tensor:
+        return super().forward(th.tanh(x))
+
     @classmethod
     def from_dict(cls, options: Dict[str, str]) -> "ActivationFunction":
         assert "n" in options, 'Must specify "n", example : "-a n=5"'

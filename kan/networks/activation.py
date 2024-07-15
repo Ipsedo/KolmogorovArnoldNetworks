@@ -35,7 +35,7 @@ class PolyCoefActivation(ActivationFunction, ABC):
         return th.einsum(
             "b...a,ac->bc...",
             th.pow(
-                th.tanh(x.unsqueeze(-1)),
+                x.unsqueeze(-1),
                 th.arange(0, self.__n + 1, device=x.device),
             ),
             self._coefficients,
